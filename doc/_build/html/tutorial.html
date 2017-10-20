@@ -1,0 +1,197 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Tutorial &mdash; Vascular Graph Model 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Vascular Graph Model 1.0 documentation" href="index.html" />
+    <link rel="next" title="vgm Package" href="vgm.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="vgm.html" title="vgm Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Vascular Graph Model 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
+<p>In order to use VGM efficiently it is essential to acquire some basic knowledge
+about the underlying programming languages and the packages that provide the
+core functionality.
+The following tutorials / manuals are recommended:</p>
+<ul>
+<li><dl class="first docutils">
+<dt><strong>Python language</strong></dt>
+<dd><p class="first last">The <a class="reference external" href="http://docs.python.org/tutorial/">official Python tutorial</a>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>Numpy</strong></dt>
+<dd><p class="first last">The numpy package provides a fast array class and a wealth of numerical
+functionality. As a primer, read the <a class="reference external" href="http://www.scipy.org/Tentative_NumPy_Tutorial">Numpy tutorial</a> from scipy.org.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>Cython</strong></dt>
+<dd><p class="first last">Cython provides the possibility to produce <em>fast</em> compiled code with the
+clean and simple syntax of Python. Moreover, it eases the pain of interfacing
+with compiled libraries. Consult the <a class="reference external" href="http://docs.cython.org/src/userguide/tutorial.html">user-guide</a> and <a class="reference external" href="http://wiki.cython.org/tutorials">tutorial</a></p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>iGraph-Python</strong></dt>
+<dd><p class="first last"><a class="reference external" href="http://www.cs.rhul.ac.uk/home/tamas/development/igraph/tutorial/tutorial.html">Here</a>
+is an introduction to iGraph-Python.  Since the class VascularGraph is
+derived from iGraph, most of the tutorial also applies to VGM.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>Matplotlib</strong></dt>
+<dd><p class="first last">Matplotlib provides publication quality 2D plotting (as well as some 3D
+plotting capabilities). <a class="reference external" href="http://matplotlib.org/users/pyplot_tutorial.html">Pyplot</a> is the Matlab-like API
+that comes with Matplotlib. Also check out this highly useful <a class="reference external" href="http://matplotlib.org/gallery.html">gallery of
+plots</a> to pick from and explore.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>Sphinx</strong></dt>
+<dd><p class="first last">Beautiful, semi-automatic code documentation (this manual is produced using
+Sphinx). Have a look at the <a class="reference external" href="http://sphinx-doc.org/tutorial.html">official tutorial</a> and a very useful 3rd party
+<a class="reference external" href="http://scienceoss.com/use-sphinx-for-documentation/">collection of hints</a>. Also, there is a
+primer on <a class="reference external" href="http://sphinx-doc.org/rest.html">reStructuredText</a>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>Paraview</strong></dt>
+<dd><p class="first last">Paraview 3D plotting is explained in depth <a class="reference external" href="http://www.paraview.org/Wiki/The_ParaView_Tutorial">here</a>.  A tutorial on
+Paraview Python-scripting can be found <a class="reference external" href="http://paraview.org/Wiki/ParaView/Python_Scripting">here</a>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>VisIt</strong></dt>
+<dd><p class="first last">Read the <a class="reference external" href="https://wci.llnl.gov/codes/visit/manuals.html">VisIt Manual</a> and
+the <a class="reference external" href="http://www.visitusers.org/index.php?title=VisIt-tutorial-Python-scripting">tutorial on visit python scripting</a>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>VGM</strong></dt>
+<dd><p class="first last">The VGM code is documented inline. Explore classes and functions e.g. using
+ipython and introspection. A small, hands-on tutorial is provided in the
+form of SAGE worksheets.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="previous chapter">Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="vgm.html"
+                        title="next chapter">vgm Package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/tutorial.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="vgm.html" title="vgm Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >previous</a> |</li>
+        <li><a href="index.html">Vascular Graph Model 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Johannes Reichold.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

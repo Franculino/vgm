@@ -1,0 +1,231 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &mdash; Vascular Graph Model 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Vascular Graph Model 1.0 documentation" href="index.html" />
+    <link rel="next" title="Tutorial" href="tutorial.html" />
+    <link rel="prev" title="Vascular Graph Model documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tutorial.html" title="Tutorial"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Vascular Graph Model documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Vascular Graph Model 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>VGM is a Python module that was written for a version of Python &lt; 3.0, but can
+probably be ported to Python 3.x (using <a class="reference external" href="http://docs.python.org/library/2to3.html">2to3</a>) with little effort, once all
+dependent packages have been ported.</p>
+<div class="section" id="required-c-libraries">
+<h2>Required C-libraries<a class="headerlink" href="#required-c-libraries" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>iGraph</li>
+</ul>
+<p><a class="reference external" href="http://www.igraph.sourceforge.net/">iGraph</a> is the backbone of the
+VGM-package. It implements graph objects and a multitude of methods with which
+to manipulate and measure graph traits. The software is written in the
+programming language C resulting in fast execution times. The corresponding
+python-package used in the VGM is a front-end to the C-library and therefore
+benefits from the speed of the compiled language.
+Installation is relatively straight forward. Please follow the instructions
+given on the <a class="reference external" href="http://www.igraph.sourceforge.net/">iGraph webpage</a>.</p>
+</div>
+<div class="section" id="required-python-packages">
+<h2>Required python packages<a class="headerlink" href="#required-python-packages" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference external" href="http://pypi.python.org/pypi/numpy/">Numpy</a> (*)</li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/scipy/">Scipy</a> (*)</li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/matplotlib/">Matplotlib</a> (*)</li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/Cython/">Cython</a> (*)</li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/pyamg/">PyAMG</a></li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/quantities/">Quantities</a></li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/python-igraph/">Python-igraph</a></li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/xlrd/">xlrd</a></li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/xlwt/">xlwt</a></li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/xlutils/">xlutils</a></li>
+<li><a class="reference external" href="http://pypi.python.org/pypi/nose/">nose</a></li>
+</ul>
+<p>In principle, VGM should work with any Python distribution if all required
+packages are installed. However, it is highly recommended to use a <em>scientific</em>
+Python distribution such as the one contained in the open source mathematics
+software <a class="reference external" href="http://sagemath.org/">SAGE</a>.
+A proprietary alternative to SAGE is the <a class="reference external" href="http://www.enthought.com/products/getepd.php">Enthought Python
+Distribution</a>. Here, however,
+only the SAGE distribution will be described.</p>
+<p>SAGE comes with a wealth of python packages already installed, including all
+packages above that are marked by (*). Moreover, SAGE includes <a class="reference external" href="http://math-atlas.sourceforge.net/">ATLAS</a>, a <a class="reference external" href="http://www.netlib.org/blas/">BLAS</a>
+installation automatically tuned to the host architecture - highly beneficial
+for the performance of the packages <em>numpy</em> and <em>scipy</em>, among others.</p>
+<p>In order to install SAGE, please follow the <a class="reference external" href="http://www.sagemath.org/doc/installation/">installation guide</a>. In order to install the
+non-included python packages, download and unzip the packages, <tt class="docutils literal"><span class="pre">cd</span></tt> to the
+respective directory and issue:</p>
+<div class="highlight-python"><pre>sage -python setup.py install</pre>
+</div>
+<p>Note that this requires the executable <tt class="docutils literal"><span class="pre">sage</span></tt> to be in your <tt class="docutils literal"><span class="pre">PATH</span></tt>.
+Finally, place the <em>VGM</em> folder in
+<tt class="docutils literal"><span class="pre">$SAGEROOT/local/lib/python/site-packages/</span></tt> (where <tt class="docutils literal"><span class="pre">$SAGEROOT</span></tt> is your SAGE
+root directory) and compile the cython files (those, that have an .spyx
+extension) by <tt class="docutils literal"><span class="pre">cd</span></tt>-ing to the appropriate directory, evoking SAGE and
+entering:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">cython_create_local_so</span><span class="p">(</span><span class="s">&#39;name_of_module.spyx&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Where &#8220;name_of_module&#8221; obviously needs to be replaced by the actual module names.
+Before this can be done, the small SAGE fix described below needs to be
+applied.</p>
+<p>Finally, if all steps have been performed, you can test your installation by:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sage</span> <span class="o">-</span><span class="n">ipython</span>
+<span class="kn">import</span> <span class="nn">vgm</span>
+</pre></div>
+</div>
+<p>Which should not produce any errors.
+<tt class="docutils literal"><span class="pre">vgm.</span></tt> followed by <tt class="docutils literal"><span class="pre">tab</span></tt> will give you a list of available modules.
+<tt class="docutils literal"><span class="pre">vgm.modulename.functionname?</span></tt> will print out the docstring of a function,
+which should provide helpful information on the objective, input- and output
+parameters of the respective function.</p>
+</div>
+<div class="section" id="sage-fix">
+<h2>SAGE fix<a class="headerlink" href="#sage-fix" title="Permalink to this headline">¶</a></h2>
+<p>The cython version included in SAGE has difficulties with the directive:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">xyz</span>
+</pre></div>
+</div>
+<p>This is addressed in the patch provided here. Please replace the file
+<tt class="docutils literal"><span class="pre">$SAGEROOT/devel/sage-main/build/sage/misc/cython.py</span></tt> by <a class="reference external" href="../../patch/cython.py">this customized
+version</a>.</p>
+</div>
+<div class="section" id="visualization-software">
+<h2>Visualization software<a class="headerlink" href="#visualization-software" title="Permalink to this headline">¶</a></h2>
+<p>There are a number of open source, multi-platform software solutions that are
+suitable for the visualisation of VascularGraph geometry, as well as vertex and
+edge based properties. Three prominent candidates are</p>
+<ul class="simple">
+<li><a class="reference external" href="http://www.paraview.org">Paraview</a></li>
+<li><a class="reference external" href="https://wci.llnl.gov/codes/visit/home.html">VisIt</a></li>
+<li><a class="reference external" href="http://code.enthought.com/projects/mayavi/">Mayavi</a></li>
+</ul>
+<p>All of the above build on the <a class="reference external" href="http://www.vtk.org/">VTK visualisation toolkit</a> and are similar in functionality.
+<tt class="xref py py-mod docutils literal"><span class="pre">g_output</span></tt> contains various methods to write VascularGraphs to disk. Among
+them are <tt class="xref py py-mod docutils literal"><span class="pre">g_output.write_vtp</span></tt>, <tt class="xref py py-mod docutils literal"><span class="pre">g_output.write_pvd_time_series</span></tt>,
+which produce Paraview/VisIt/Mayavi-readable output.</p>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#required-c-libraries">Required C-libraries</a></li>
+<li><a class="reference internal" href="#required-python-packages">Required python packages</a></li>
+<li><a class="reference internal" href="#sage-fix">SAGE fix</a></li>
+<li><a class="reference internal" href="#visualization-software">Visualization software</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Vascular Graph Model documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="tutorial.html"
+                        title="next chapter">Tutorial</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/installation.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tutorial.html" title="Tutorial"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Vascular Graph Model documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">Vascular Graph Model 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Johannes Reichold.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

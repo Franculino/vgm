@@ -1,0 +1,193 @@
+from __future__ import division
+
+import numpy as np
+
+__all__ = ['Advection']
+
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
+
+class Advection(object):
+    """This class implements advective transport of a passive tracer with the 
+    fluid flow. Time is treated explicitly, so the maximum time-step is limited
+    by a cfl condition to achieve stability.
+    A VascularGraph is associated with every instance of the Advection class. 
+    The connectivity information as well as initial tracer concentration are 
+    taken from the VascularGraph. The advection itself is performed, and 
+    current tracer concentrations are stored within the Advection instance. At 
+    the end of the advection, the concentration stored in the Advection 
+    instance can be copied back to the VascularGraph. 
+    """
+
+    def __init__(self,Graph,substance,cfl):
+        """Initialize an Advection instance
+        INPUT: Graph: VascularGraph instance.
+               substance: The name of the substance as string.
+               cfl: The CFL-number that limits the time step.
+        OUTPUT: None       
+        """
+        self.G = Graph
+        self.substance = substance
+        self.get_concentration()
+        self.cfl = cfl
+        self.update_upwind()
+        self.update_time_step()        
+        self.time = 0.0        
+        
+        
+    def get_concentration(self):
+        """Copies the concentration of the substance from the VascularGraph to
+        the Advection instance.
+        INPUT: None
+        OUTPUT: None (the property self.concentration is modified in-place)
+        """
+        c = []
+        for v in self.G.vs:
+            c.append(v['substance'][self.substance])
+        self.concentration = c    
+ 
+ 
+    def set_concentration(self):
+        """Copies the concentration of the substance from the Advection 
+        instance to the VascularGraph.
+        INPUT: None
+        OUTPUT: None (the VascularGraph is modified in-place)
+        """
+        for i, v in enumerate(self.G.vs):
+            v['substance'][self.substance] = self.concentration[i]            
+        
+
+    def update_time_step(self):
+        """Updates the time step of the Advection instance based on the CFL-
+        criterion.
+        INPUT: None
+        OUTPUT: None (the property self.dt is modified in-place)
+        """
+        dtMin = 1e200
+        outflow = self.outflow
+        vVolume = self.vVolume
+        for vertex in xrange(self.G.vcount()):
+            if outflow[vertex] > 0.0:
+                dt = vVolume[vertex] / outflow[vertex]
+                if dt < dtMin:
+                    dtMin = dt
+                        
+        print 'dt: %f %s' % (dtMin, self.G['defaultUnits']['time'])        
+        self.dt = dtMin
+
+ 
+ 
+    def update_upwind(self):
+        """Updates the upwind-concentration list self.cUpwind. This list is 
+        used to decide which concentrations to use during the advection 
+        process (see the method 'advect' for details). Moreover, the flows, 
+        vertex-volumes and neighbors are also updated.
+        Note that it is necessary to call this function whenever the pressure
+        and flow field in the VascularGraph have changed. I.e. in steady-state
+        scenarios, update_upwind need only be called once. 
+        INPUT: None
+        OUTPUT: None (self.cUpwind, self.vVolume, self.flow, self.neighbors are
+                      changed in-place).
+        """
+        G = self.G
+        if 'uVolume' in G.vs.attribute_names():
+            uVolume = [v if v is not None else 0.0 for v in G.vs['uVolume']]
+        else:
+            uVolume = [0.0 for v in xrange(G.vcount())]
+        vVolume = [0.0 for v in xrange(G.vcount())]            
+        flow = [[] for i in xrange(G.vcount())]
+        outflow = [0.0 for i in xrange(G.vcount())]
+        cUpwind = [[] for i in xrange(G.vcount())]
+        neighbors = G.get_adjlist('all')
+        
+        for i, vertex in enumerate(G.vs):
+            for k, j in enumerate(G.neighbors(i)):
+                neighbor = G.vs[j]
+                edge = G.es[G.adjacent(i,'all')[k]] # directed graph req. 'all' 
+                vVolume[i] += edge['volume']
+                if vertex['pressure'] > neighbor['pressure']:
+                    flow[i].append(edge['flow'])
+                    outflow[i] = outflow[i] + edge['flow'] 
+                    cUpwind[i].append(i)
+                else:  
+                    flow[i].append(-1.0 * edge['flow'])
+                    cUpwind[i].append(j)
+            # only half-edge contributes, possible upscaled volume addition:        
+            vVolume[i] = vVolume[i] / 2.0 + uVolume[i]                                        
+            # account for outflux through low-pressure pBC / 
+            # negative-rate rBC nodes:
+            if sum(flow[i]) < 0 and \
+               (vertex['pBC'] is not None or vertex['rBC'] is not None):
+                flow[i].append(-sum(flow[i]))
+                cUpwind[i].append(i)
+                neighbors[i].append(i)
+        self.cUpwind = cUpwind
+        self.vVolume = vVolume
+        self.flow = flow
+        self.outflow = outflow
+        self.neighbors = neighbors
+
+
+    def advect(self, **kwargs):
+        """Advects the substance for a given time or a given number of 
+        time-steps.
+        INPUT: **kwargs
+               steps: Number of time-steps to advect (using the current 
+                      time-step self.dt). 
+               time: Advection duration (self.dt is adjusted such that the CFL-
+                     criterion is fulfilled and self.dt is a proper divisor
+                     of time).    
+        """
+        # speed gains and cleaner code by abbreviation:
+        cOld = self.concentration
+        cNew = self.concentration
+        substance = self.substance
+        cUpwind = self.cUpwind 
+        vVolume = self.vVolume
+        flow = self.flow
+        neighbors = self.neighbors
+        G = self.G
+        
+        # further speed gains by using types:
+        cdef int step
+        cdef int nSteps        
+        cdef int node
+        cdef int neighbor        
+        cdef int nNodes = G.vcount()
+        cdef double sum_i
+        cdef double dt
+        cdef double vVolume_i
+        cdef double flow_ij        
+        cdef double cOld_ij, cOld_i
+        
+        # compute step size and number of steps:
+        if kwargs.has_key('steps'):
+            nSteps = kwargs['steps']
+            dt = self.dt
+        elif kwargs.has_key('time'):
+            time = kwargs['time']
+            dt = time / np.ceil(time / self.dt)
+            nSteps = int(time / dt)
+        else:
+            raise KeyError
+        
+        nodelist = [v.index for v in G.vs if v['sBC'][substance] is None]
+        
+        for step in range(nSteps):
+            for node in nodelist:
+                sum_i = 0.0
+                vVolume_i = vVolume[node]
+                for neighbor in range(len(neighbors[node])):
+                    flow_ij = flow[node][neighbor]
+                    cOld_ij = cOld[cUpwind[node][neighbor]]
+                    sum_i += flow_ij * cOld_ij  
+                    cOld_i = cOld[node]
+                cNew[node] = cOld_i - dt / vVolume_i * sum_i
+            cOld = cNew
+                    
+        self.time += dt * nSteps
+
+
+            

@@ -1,0 +1,421 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>preprocessing Package &mdash; Vascular Graph Model 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Vascular Graph Model 1.0 documentation" href="index.html" />
+    <link rel="up" title="vgm Package" href="vgm.html" />
+    <link rel="prev" title="core Package" href="vgm.core.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="vgm.core.html" title="core Package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Vascular Graph Model 1.0 documentation</a> &raquo;</li>
+          <li><a href="vgm.html" accesskey="U">vgm Package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="preprocessing-package">
+<h1>preprocessing Package<a class="headerlink" href="#preprocessing-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">preprocessing</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-vgm.preprocessing"></span></div>
+<div class="section" id="module-vgm.preprocessing.reconnection">
+<span id="reconnection-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">reconnection</span></tt> Module<a class="headerlink" href="#module-vgm.preprocessing.reconnection" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vgm.preprocessing.reconnection.reconnect_cf">
+<tt class="descclassname">vgm.preprocessing.reconnection.</tt><tt class="descname">reconnect_cf</tt><big>(</big><em>G</em>, <em>r_search=70</em>, <em>costCutoff=1.0</em>, <em>border=10.0</em>, <em>allowMultiple=True</em>, <em>A=0.59999999999999998</em>, <em>n=1.3999999999999999</em>, <em>loop_diameter=80.0</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.preprocessing.reconnection.reconnect_cf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Improves the connectivity of a vascular graph by reconnecting dead ends.
+Suitable connection partners are found based on the following</p>
+<blockquote>
+<div><p>cost-function (the individual parameters are explained below):
+Cost=A * distance / r_search +</p>
+<blockquote>
+<div>(1-A) * (1 - exp(-n angle / pi)) * (1-erf(distance / loop_diameter)</div></blockquote>
+</div></blockquote>
+<dl class="docutils">
+<dt>INPUT: G: VascularGraph.</dt>
+<dd><dl class="first docutils">
+<dt>r_search: The radius within which potential connection candidates are</dt>
+<dd>searched for.</dd>
+</dl>
+<p>costCutoff: Cost above which potential new edges are discarded.
+border: Distance to edge of domain within which endpoins are</p>
+<blockquote>
+<div>ignored.</div></blockquote>
+<dl class="docutils">
+<dt>allowMultiple: The endpoints are treated sequentially. This boolean</dt>
+<dd>decides whether an endpoint is deleated from the list
+of endpoints once a connection has been made to it, 
+or whether it should stay available for more
+connections from other endpoints.</dd>
+<dt>A: Distance cost factor. The angle cost is (1-A), such that the </dt>
+<dd>maximum cost possible is 1.0.</dd>
+</dl>
+<p>n: Angle cost modulation factor.
+loop_diameter: The typical diameter of a vessel loop (beyond this</p>
+<blockquote>
+<div>distance, the influence of the connection angle is
+negligible).</div></blockquote>
+<p><a href="#id2"><span class="problematic" id="id3">**</span></a>kwargs
+connType: The type of connection to be made between end-points. This</p>
+<blockquote>
+<div>can be either &#8216;linear&#8217; or &#8216;spline&#8217;. (Default &#8216;spline&#8217;.)</div></blockquote>
+<p>splineOrder: The order of the splines to be fitted. (Default 3.)
+numEdgePoints: The number of edge points to create the spline</p>
+<blockquote>
+<div>(taking many points into account will yield a fit 
+that matches the overall shape of the two 
+ending-edges well, but may not produce a good fit at 
+the endpoint vertices. The smaller the number of edge 
+points, the better the match with the endpoint 
+vertices, however the total number of points to
+fit must always exceed the order of the spline).
+(Default: (spline order + 1) / 2)</div></blockquote>
+<dl class="last docutils">
+<dt>endpoints: A list of selected endpoint vertices to reconnect (useful</dt>
+<dd>for testing purposes). All other enpoints serve only as
+potential connection partners.</dd>
+</dl>
+</dd>
+</dl>
+<p>OUTPUT: None, the VascularGraph is modified in-place</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.preprocessing.reconnection.reconnect_tr">
+<tt class="descclassname">vgm.preprocessing.reconnection.</tt><tt class="descname">reconnect_tr</tt><big>(</big><em>G_ht</em>, <em>G_lt</em>, <em>r_search=20.0</em>, <em>r_match=3.0</em><big>)</big><a class="headerlink" href="#vgm.preprocessing.reconnection.reconnect_tr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Improves the connectivity of a vascular graph by reconnecting dead ends.
+Suitable connection partners are found based on threshold relaxation. 
+INPUT: G_ht: VascularGraph to be reconnected.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>G_lt: VascularGraph of low threshold (i.e. high connectivity, </dt>
+<dd>potentially many artifacts)</dd>
+<dt>r_search: The radius within which potential connection candidates are</dt>
+<dd>searched for.</dd>
+</dl>
+<p>r_match:</p>
+</div></blockquote>
+<p>OUTPUT: None, the VascularGraph is modified in-place</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.preprocessing.rescaling">
+<span id="rescaling-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">rescaling</span></tt> Module<a class="headerlink" href="#module-vgm.preprocessing.rescaling" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vgm.preprocessing.rescaling.rescale_cdd">
+<tt class="descclassname">vgm.preprocessing.rescaling.</tt><tt class="descname">rescale_cdd</tt><big>(</big><em>G</em>, <em>copyGraph=True</em>, <em>zRange=None</em>, <em>wallThickness=0.5</em>, <em>figname='fig.png'</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.preprocessing.rescaling.rescale_cdd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rescales a VascularGraph by matching its capillary diameter 
+distribution to that of the Cerebral Cortex paper of Weber et al. (2008).
+In a second step the dimensions of the entire sample are scaled by the
+mean scaling factor of the first step, or by a given factor if provided via
+the keyword arguments.
+INPUT: G: VascularGraph</p>
+<blockquote>
+<div><p>copyGraph: Modify original or make a copy? (Boolean.)
+zRange: The cortical depth for which the volume fraction is to be</p>
+<blockquote>
+<div>computed. Default is [max(100, minZ), min(900, maxZ)].</div></blockquote>
+<dl class="docutils">
+<dt>wallThickness: The wall thickness of the blood vessels. A uniform</dt>
+<dd>thickness is assumed for all vessels.</dd>
+<dt>figname: The name of the figure in which the results are plotted.</dt>
+<dd>If this is set to &#8216;None&#8217;, no figure will be created.</dd>
+<dt><a href="#id4"><span class="problematic" id="id5">**</span></a>kwargs:</dt>
+<dd><dl class="first last docutils">
+<dt>dsf: The scaling factor by which the dimensions of the sample </dt>
+<dd>are to be multiplied with.</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: VascularGraph and figure (depending on input).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.preprocessing.rescaling.correct_for_shrinkage">
+<tt class="descclassname">vgm.preprocessing.rescaling.</tt><tt class="descname">correct_for_shrinkage</tt><big>(</big><em>G</em>, <em>factor</em><big>)</big><a class="headerlink" href="#vgm.preprocessing.rescaling.correct_for_shrinkage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Corrects the geometrical properties of the vascular graph for sample
+shrinkage. Currently this modifies the following graph properties:
+vertices: r
+edges: diameters, diameter, depth, volume, length, points
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>factor: Factor by which the geometrical properties are to be scaled</dt>
+<dd>(i.e. enlarged).</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: None, G is modified in-place.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.preprocessing.rescaling.scale_to_volume_fraction">
+<tt class="descclassname">vgm.preprocessing.rescaling.</tt><tt class="descname">scale_to_volume_fraction</tt><big>(</big><em>G</em>, <em>fraction=0.022499999999999999</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.preprocessing.rescaling.scale_to_volume_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Corrects the geometrical properties of the vascular graph to achieve a 
+desired volume fraction by multiplication of vascular parameters with a
+given factor. Currently this modifies the following graph properties:
+vertices: r
+edges: diameters, diameter, depth, volume, length, points
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>fraction: Volume-fraction which the vessels of the graph should</dt>
+<dd>have after the scaling. The default is 0.0225.</dd>
+<dt><a href="#id6"><span class="problematic" id="id7">**</span></a>kwargs:</dt>
+<dd><dl class="first last docutils">
+<dt>shape: The shape of the vascular graph. This may be either </dt>
+<dd>&#8216;cuboid&#8217; or &#8216;cylinder&#8217;. If not provided, the shape is 
+determined from the data.</dd>
+<dt>zRange: Range of zValues in which to consider the edges of the </dt>
+<dd>graph for volume fraction computation (as list, e.g.
+[0,1000]). Without this keyword argument, all edges are 
+considered.
+Note that the scaling factor resulting from this 
+computation is naturally not restricted to the vessels in 
+zRange, it is applied to all vessels.</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: None, G is modified in-place.
+WARNING: This method yields mean capillary diameters that are</p>
+<blockquote>
+<div>unphysiologically small. Use of &#8216;rescale_cdd&#8217; is preferable.</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.preprocessing.rescaling.scale_to_mean_capillary_diameter">
+<tt class="descclassname">vgm.preprocessing.rescaling.</tt><tt class="descname">scale_to_mean_capillary_diameter</tt><big>(</big><em>G</em>, <em>threshold=None</em>, <em>meanD=None</em>, <em>method='multiplication'</em><big>)</big><a class="headerlink" href="#vgm.preprocessing.rescaling.scale_to_mean_capillary_diameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Corrects the geometrical properties of the vascular graph to achieve a 
+desired mean capillary diameter. Diameters of the vessels are modified by 
+adding a common value, irrespective of the vessel type (capillary,
+arteriole, venole).</p>
+<dl class="docutils">
+<dt>INPUT: G: Vascular graph in iGraph format.</dt>
+<dd><dl class="first last docutils">
+<dt>threshold: Threshold below which vessels are considered as</dt>
+<dd>capillaries (optional, if not provided threshold=7.0 
+micron).</dd>
+<dt>meanD: Desired mean diameter of the capillaries (optional, if not</dt>
+<dd>provided meanD=5.0 micron)</dd>
+<dt>method: This can be either &#8216;multiplication&#8217; (the default), or</dt>
+<dd>&#8216;addition&#8217;. Signifying whether a common factor is added or 
+multiplied to all diameter values.</dd>
+</dl>
+</dd>
+</dl>
+<p>OUTPUT: None, G is modified in-place.
+WARNING: This method yields incorrect diameter distributions. Use of</p>
+<blockquote>
+<div>&#8216;rescale_cdd&#8217; is preferable.</div></blockquote>
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.preprocessing.slabs">
+<span id="slabs-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">slabs</span></tt> Module<a class="headerlink" href="#module-vgm.preprocessing.slabs" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vgm.preprocessing.slabs.divide_into_slabs">
+<tt class="descclassname">vgm.preprocessing.slabs.</tt><tt class="descname">divide_into_slabs</tt><big>(</big><em>G</em>, <em>slabThickness</em>, <em>overlap</em><big>)</big><a class="headerlink" href="#vgm.preprocessing.slabs.divide_into_slabs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Divides a VascularGraph into subgraphs that are slabs along the z-axis.
+INPUT: G: VascularGraph to be cut into slabs.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>slabThickness: The thickness (in z-direction) of the resulting </dt>
+<dd>slabs.</dd>
+</dl>
+<p>overlap: The overlap of the slabs.</p>
+</div></blockquote>
+<p>OUTPUT: A list of slab subgraphs.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.preprocessing.slabs.unify_slabs">
+<tt class="descclassname">vgm.preprocessing.slabs.</tt><tt class="descname">unify_slabs</tt><big>(</big><em>slabSubgraphs</em><big>)</big><a class="headerlink" href="#vgm.preprocessing.slabs.unify_slabs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unite slabs to form a single VascularGraph. (This function is the 
+inverse of &#8216;divide_into_slabs&#8217;.)
+INPUT: slabSubgraphs: List of slab subgraphs.
+OUTPUT: VascularGraph that is the union of the slab subgraphs.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.preprocessing.transformation">
+<span id="transformation-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">transformation</span></tt> Module<a class="headerlink" href="#module-vgm.preprocessing.transformation" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vgm.preprocessing.transformation.invert_z">
+<tt class="descclassname">vgm.preprocessing.transformation.</tt><tt class="descname">invert_z</tt><big>(</big><em>G</em><big>)</big><a class="headerlink" href="#vgm.preprocessing.transformation.invert_z" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inverts the z-value of the verticies of the vascular graph in iGraph
+format. 
+INPUT: G:  Vascular graph in iGraph format.
+OUTPUT: None - the vascular graph G is modified in place.
+WARNING: This currently does not take care of the edge parameters points,</p>
+<blockquote>
+<div>angle, depth!</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.preprocessing.transformation.adjust_cortical_depth">
+<tt class="descclassname">vgm.preprocessing.transformation.</tt><tt class="descname">adjust_cortical_depth</tt><big>(</big><em>G</em>, <em>deltaZ</em><big>)</big><a class="headerlink" href="#vgm.preprocessing.transformation.adjust_cortical_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjusts the z-component of the vertices and points of the vascular 
+graph.
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div>deltaZ: Amount by which to shift the data.</div></blockquote>
+<p>OUTPUT: None - the graph is modified in-place.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.preprocessing.transformation.shift">
+<tt class="descclassname">vgm.preprocessing.transformation.</tt><tt class="descname">shift</tt><big>(</big><em>G</em>, <em>offset</em><big>)</big><a class="headerlink" href="#vgm.preprocessing.transformation.shift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shifts (moves) the geometrical properties of the vascular graph by a
+given offset. Currently, this includes the vertex properties &#8216;r&#8217; and 
+&#8216;depth&#8217;, as well as the edge propery &#8216;points&#8217;.</p>
+<dl class="docutils">
+<dt>INPUT: G: Vascular graph in iGraph format.</dt>
+<dd>offset: Offset as list [x,y,z] by which the graph is to be shifted.</dd>
+</dl>
+<p>OUTPUT: None, graph is modified in place.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.preprocessing.transformation.rotate_using_axis_and_angle">
+<tt class="descclassname">vgm.preprocessing.transformation.</tt><tt class="descname">rotate_using_axis_and_angle</tt><big>(</big><em>G</em>, <em>axis</em>, <em>angle</em>, <em>cor=(0.0</em>, <em>0.0</em>, <em>0.0)</em><big>)</big><a class="headerlink" href="#vgm.preprocessing.transformation.rotate_using_axis_and_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotates the VascularGraph around a given axis.
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div>axis: Axis around which to rotate as array.
+angle: Angle by which to rotate in radians.
+cor: Center of roation as array.</div></blockquote>
+<p>OUTPUT: None, the VascularGraph is modified in-place.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.preprocessing.transformation.rotate_using_two_vectors">
+<tt class="descclassname">vgm.preprocessing.transformation.</tt><tt class="descname">rotate_using_two_vectors</tt><big>(</big><em>G</em>, <em>vFrom</em>, <em>vTo</em>, <em>cor=(0.0</em>, <em>0.0</em>, <em>0.0)</em><big>)</big><a class="headerlink" href="#vgm.preprocessing.transformation.rotate_using_two_vectors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotates the VascularGraph according to the rotation of one vector to 
+match another vector.
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div>vFrom: The vector of the initial orientation.
+vTo: The vector of the final orientation after rotation.
+cor: Center of roation as array.</div></blockquote>
+<p>OUTPUT: None, the VascularGraph is modified in-place.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.preprocessing.transformation.rotate_using_quaternion">
+<tt class="descclassname">vgm.preprocessing.transformation.</tt><tt class="descname">rotate_using_quaternion</tt><big>(</big><em>G</em>, <em>Quat</em>, <em>cor=(0.0</em>, <em>0.0</em>, <em>0.0)</em><big>)</big><a class="headerlink" href="#vgm.preprocessing.transformation.rotate_using_quaternion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotates the VascularGraph using a quaternion.
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div>Quat: Quaternion that defines the rotation.
+cor: Center of roation as array.</div></blockquote>
+<p>OUTPUT: None, the VascularGraph is modified in-place.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">preprocessing Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">preprocessing</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-vgm.preprocessing.reconnection"><tt class="docutils literal"><span class="pre">reconnection</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.preprocessing.rescaling"><tt class="docutils literal"><span class="pre">rescaling</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.preprocessing.slabs"><tt class="docutils literal"><span class="pre">slabs</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.preprocessing.transformation"><tt class="docutils literal"><span class="pre">transformation</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="vgm.core.html"
+                        title="previous chapter">core Package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/vgm.preprocessing.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="vgm.core.html" title="core Package"
+             >previous</a> |</li>
+        <li><a href="index.html">Vascular Graph Model 1.0 documentation</a> &raquo;</li>
+          <li><a href="vgm.html" >vgm Package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Johannes Reichold.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>

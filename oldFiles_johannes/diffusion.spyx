@@ -1,0 +1,181 @@
+from __future__ import division
+
+cimport numpy as np
+import numpy as np
+
+import units
+
+__all__ = ['Diffusion']
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
+
+class Diffusion(object):
+    """This class implements diffusive transport of a passive tracer. Time is
+    treated explicitly, so the maximum time-step is limited by a cfl condition
+    to achieve stability.
+    A VascularGraph is associated with every instance of the Diffusion class. 
+    The connectivity information as well as initial tracer concentration are 
+    taken from the VascularGraph. The diffusion itself is performed, and 
+    current tracer concentrations are stored within the Diffusion instance. At 
+    the end of the diffusion, the concentration stored in the Diffusion 
+    instance can be copied back to the VascularGraph. 
+    """
+    def __init__(self,Graph,substance,cfl,D=None):
+        """Initialize a Diffusion instance
+        INPUT: Graph: VascularGraph instance.
+               substance: The name of the substance as string.
+               cfl: The CFL-number that limits the time step.
+               D: Diffusion constant (optional). If not provided, D will be set
+                  to a default value of 3e-7 m^2/s.
+        OUTPUT: None       
+        """        
+        self.G = Graph
+        self.substance = substance
+        self.cfl = cfl        
+        if D is None:
+            dc = 3.0e-7 * units.scaling_factor_du('m^2/s', Graph['defaultUnits'])
+            self.diffusionCoefficient = [dc for e in Graph.es]
+        self.time = 0.0              
+        self.get_concentration()
+        self.update_vVolume()        
+        self.update_time_step()
+
+
+        # Diffusion coefficient has units of [length^2 / time]
+        # D_ij = u_ij * l_ij * c_i / (c_i-c_j)
+        # Assuming c_i=1, c_j=0 and a diffusive flow speed of the same 
+        # magnitude as advective flow in capillaries, 
+        # i.e. u_ij = 3 mm/s, l_ij = 0.1 mm, 
+        # we get a diffusion coefficient of D_ij = 3e-7 m^2/s
+        
+    def get_concentration(self):
+        """Copies the concentration of the substance from the VascularGraph to
+        the Diffusion instance.
+        INPUT: None
+        OUTPUT: None (the property self.concentration is modified in-place)
+        """        
+        c = []
+        for v in self.G.vs:
+            c.append(v['substance'][self.substance])
+        self.concentration = c    
+            
+    def set_concentration(self):
+        """Copies the concentration of the substance from the Diffusion 
+        instance to the VascularGraph.
+        INPUT: None
+        OUTPUT: None (the VascularGraph is modified in-place)
+        """        
+        for i, v in enumerate(self.G.vs):
+            v['substance'][self.substance] = self.concentration[i]        
+
+
+    def update_time_step(self):
+        """Updates the time step of the Diffusion instance based on the CFL-
+        criterion.
+        INPUT: None
+        OUTPUT: None (the property self.dt is modified in-place)
+        """        
+        dt = 1e20
+        G = self.G
+        for i,vertex in enumerate(G.vs):
+            tmpSum = 0.0
+            vVolume = 0.0
+            for adj in G.adjacent(i,'all'):
+                edge = G.es[adj]
+                tmpSum += edge['crossSection'] * \
+                          self.diffusionCoefficient[adj] / \
+                          edge['length']
+                vVolume += edge['volume']
+            tmpDt = vVolume / tmpSum           
+            if tmpDt < dt:
+                dt = tmpDt
+        print 'dt: %f' % dt        
+        self.dt = dt * self.cfl
+        
+    def update_vVolume(self):
+        """Updates the vertex-volume list self.vVolume. This may be necessary
+        when running simulations that include vessel compliance. In rigid 
+        networks, however, update_vVolume need only be called once.         
+        INPUT: None
+        OUTPUT: None (self.vVolume is changed in-place).
+        """        
+        G = self.G
+        if 'uVolume' in G.vs.attribute_names():
+            uVolume = [v if v is not None else 0.0 for v in G.vs['uVolume']]
+        else:
+            uVolume = [0.0 for v in xrange(G.vcount())]        
+        vVolume = [0.0 for v in xrange(G.vcount())]
+        for i, vertex in enumerate(G.vs):
+            for k, j in enumerate(G.neighbors(i)):
+                neighbor = G.vs[j]
+                edge = G.es[G.adjacent(i,'all')[k]] # directed graph req. 'all' 
+                vVolume[i] += edge['volume']
+            # only half-edge contributes, possible upscaled volume addition:        
+            vVolume[i] = vVolume[i] / 2.0 + uVolume[i]  
+        self.vVolume = vVolume
+
+
+    def diffuse(self, **kwargs):
+        """Diffuses the substance for a given time or a given number of 
+        time-steps.
+        INPUT: **kwargs
+               steps: Number of time-steps to diffuse (using the current 
+                      time-step self.dt). 
+               time: Diffusion duration (self.dt is adjusted such that the CFL-
+                     criterion is fulfilled and self.dt is a proper divisor
+                     of time).    
+        """        
+        # speed gains and cleaner code by abbreviation:        
+        substance = self.substance 
+        G = self.G
+        
+        # further speed gains by using types:
+        cdef int step
+        cdef int node
+        cdef int neighbor
+        cdef int edge        
+        cdef int nNodes = G.vcount()            
+        cdef double tmpSum
+        cdef double dt = self.dt
+        cdef np.ndarray[double, ndim=1] lengths = np.array(G.es['length'])
+        cdef np.ndarray[double, ndim=1] crossSection = np.array(G.es['crossSection'])
+        cdef np.ndarray[double, ndim=1] dc = np.array(self.diffusionCoefficient)
+        cdef np.ndarray[double, ndim=1] vVolume = np.array(self.vVolume)
+        cdef np.ndarray[double, ndim=1] cOld = np.array(self.concentration)
+        cdef np.ndarray[double, ndim=1] cNew = np.array(self.concentration)
+        
+        # compute step size and number of steps:
+        if kwargs.has_key('steps'):
+            nSteps = kwargs['steps']
+            dt = self.dt
+        elif kwargs.has_key('time'):
+            time = kwargs['time']
+            dt = time / np.ceil(time / self.dt)
+            nSteps = int(time / dt)
+        else:
+            raise KeyError
+        
+        nodelist = [v.index for v in G.vs if v['sBC'][substance] is None]
+        neighbors = G.get_adjlist('all')        
+            
+        for step in range(nSteps):
+            for node in nodelist:
+                tmpSum = 0.0
+                edges = G.adjacent(node,'all')
+                for n in range(len(neighbors[node])):
+                    edge = edges[n] 
+                    neighbor = neighbors[node][n]
+                    tmpSum += crossSection[edge] * dc[edge] * \
+                              (cOld[node] - cOld[neighbor]) / lengths[edge]
+                            
+                cNew[node] = cOld[node] - dt/vVolume[node] * tmpSum
+            cOld = cNew
+                    
+        self.time += dt * nSteps
+        self.concentration = cNew
+
+
+            
+

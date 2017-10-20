@@ -1,0 +1,2747 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>core Package &mdash; Vascular Graph Model 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Vascular Graph Model 1.0 documentation" href="index.html" />
+    <link rel="up" title="vgm Package" href="vgm.html" />
+    <link rel="next" title="preprocessing Package" href="vgm.preprocessing.html" />
+    <link rel="prev" title="vgm Package" href="vgm.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="vgm.preprocessing.html" title="preprocessing Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vgm.html" title="vgm Package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Vascular Graph Model 1.0 documentation</a> &raquo;</li>
+          <li><a href="vgm.html" accesskey="U">vgm Package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="core-package">
+<h1>core Package<a class="headerlink" href="#core-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">core</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-vgm.core"></span></div>
+<div class="section" id="advection-module">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">advection</span></tt> Module<a class="headerlink" href="#advection-module" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-vgm.core.advection"></span><p>File: advection.pyx (starting at line 1)</p>
+<dl class="class">
+<dt id="vgm.core.advection.Advection">
+<em class="property">class </em><tt class="descclassname">vgm.core.advection.</tt><tt class="descname">Advection</tt><a class="headerlink" href="#vgm.core.advection.Advection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>File: advection.pyx (starting at line 17)
+This class implements advective transport of a passive tracer with the</p>
+<blockquote>
+<div>fluid flow. Time is treated explicitly, so the maximum time-step is limited
+by a cfl condition to achieve stability.
+A VascularGraph is associated with every instance of the Advection class. 
+The connectivity information as well as initial tracer concentration are 
+taken from the VascularGraph. The advection itself is performed, and 
+current tracer concentrations are stored within the Advection instance. At 
+the end of the advection, the concentration stored in the Advection 
+instance can be copied back to the VascularGraph.</div></blockquote>
+<dl class="method">
+<dt id="vgm.core.advection.Advection.advect">
+<tt class="descname">advect</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.advection.Advection.advect" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: advection.pyx (starting at line 138)
+Advects the substance for a given time or a given number of 
+time-steps.
+INPUT: <a href="#id2"><span class="problematic" id="id3">**</span></a>kwargs</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>steps: Number of time-steps to advect (using the current </dt>
+<dd>time-step self.dt).</dd>
+<dt>time: Advection duration (self.dt is adjusted such that the CFL-</dt>
+<dd>criterion is fulfilled and self.dt is a proper divisor
+of time).</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.advection.Advection.get_concentration">
+<tt class="descname">get_concentration</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.advection.Advection.get_concentration" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: advection.pyx (starting at line 45)
+Copies the concentration of the substance from the VascularGraph to
+the Advection instance.
+INPUT: None
+OUTPUT: None (the property self.concentration is modified in-place)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.advection.Advection.set_concentration">
+<tt class="descname">set_concentration</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.advection.Advection.set_concentration" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: advection.pyx (starting at line 57)
+Copies the concentration of the substance from the Advection 
+instance to the VascularGraph.
+INPUT: None
+OUTPUT: None (the VascularGraph is modified in-place)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.advection.Advection.update_time_step">
+<tt class="descname">update_time_step</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.advection.Advection.update_time_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: advection.pyx (starting at line 67)
+Updates the time step of the Advection instance based on the CFL-
+criterion.
+INPUT: None
+OUTPUT: None (the property self.dt is modified in-place)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.advection.Advection.update_upwind">
+<tt class="descname">update_upwind</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.advection.Advection.update_upwind" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: advection.pyx (starting at line 87)
+Updates the upwind-concentration list self.cUpwind. This list is 
+used to decide which concentrations to use during the advection 
+process (see the method &#8216;advect&#8217; for details). Moreover, the flows, 
+vertex-volumes and neighbors are also updated.
+Note that it is necessary to call this function whenever the pressure
+and flow field in the VascularGraph have changed. I.e. in steady-state
+scenarios, update_upwind need only be called once. 
+INPUT: None
+OUTPUT: None (self.cUpwind, self.vVolume, self.flow, self.neighbors are</p>
+<blockquote>
+<div>changed in-place).</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.boundary_conditions">
+<span id="boundary-conditions-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">boundary_conditions</span></tt> Module<a class="headerlink" href="#module-vgm.core.boundary_conditions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vgm.core.boundary_conditions.find_pBC_vertices_using_landmarks">
+<tt class="descclassname">vgm.core.boundary_conditions.</tt><tt class="descname">find_pBC_vertices_using_landmarks</tt><big>(</big><em>G</em>, <em>aLandmarks</em>, <em>vLandmarks</em>, <em>method='topDown'</em>, <em>diameter_ll=7.0</em>, <em>isEndpoint=False</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.boundary_conditions.find_pBC_vertices_using_landmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vascular networks that include the pial vessels are used to identify 
+arteries and veins. The locations where penetrating arterioles / draining
+veins leave / enter the cortical surface network are saved in landmark 
+files. This function reads the landmark files and finds the corresponding 
+vertices of the VascularGraph, i.e. those vertices that connect to the 
+surface network. The indices of these vertices can later be used to set 
+e.g. pressure boundary conditions.
+INPUT: G: Vascular graph in iGraph format</p>
+<blockquote>
+<div><p>aLandmarks: Name of landmark-file containing arterial vertex coords.
+vLandmarks: Name of landmark-file containing venous vertex coords.
+method: The search method of finding graph vertices that match the</p>
+<blockquote>
+<div>landmarks. This can be either &#8216;exact&#8217;, &#8216;zNull&#8217;, or 
+&#8216;topDown&#8217;. The first takes the landmarks coordinates as is,
+the second sets the z-component of the landmarks to zero, 
+the third starts searching at the lowest possible z-value 
+and continues to higher z-values until a match is found. 
+The setting &#8216;topDown&#8217; requires the keyword-argument 
+&#8216;acceptableDistance&#8217; to be defined.</div></blockquote>
+<dl class="docutils">
+<dt>zNull: Boolean, optional. If True (the default), will set the </dt>
+<dd>z-value of the landmark coordinates to zero - helping to 
+adjust the offset between uncropped samples that include the 
+pial vessels (in which the landmarks were acquired), and 
+cropped samples that don&#8217;t.</dd>
+<dt>diameter_ll: (Optional) lower limit of edge diameter, to select only</dt>
+<dd>those vertices bordering a sufficiently large diameter
+edge. Default is 7.0, i.e. only vertices with adjacent
+edges &gt;= 7.0 are considered.</dd>
+<dt>isEndpoint: Boolean whether or not the pBC vertices are all                      </dt>
+<dd>endpoints. Default is &#8216;False&#8217;.</dd>
+</dl>
+<p><a href="#id4"><span class="problematic" id="id5">**</span></a>kwargs
+acceptableDistance: The maximum distance between landmark and vertex</p>
+<blockquote>
+<div>which is acceptable for a match. (50 micron 
+appears to be a good value.)</div></blockquote>
+<dl class="docutils">
+<dt>zMax: The maximum z-value (i.e. cortical depth) to which the vertex</dt>
+<dd>search should be performed in &#8216;topDown&#8217; mode.</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: aVertices: Arterial pBC vertices.</dt>
+<dd>vVertices: Venous pBC vertices.
+Note that G is not modified.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.boundary_conditions.add_pBCs">
+<tt class="descclassname">vgm.core.boundary_conditions.</tt><tt class="descname">add_pBCs</tt><big>(</big><em>G</em>, <em>kind</em>, <em>vertices</em><big>)</big><a class="headerlink" href="#vgm.core.boundary_conditions.add_pBCs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds pressure boundary conditions to the vascular graph. Pressure values
+are taken from literature (see function &#8216;blood_pressure&#8217;).
+The pressure boundary vertices recieve a kind tag of either &#8216;a&#8217; or &#8216;v&#8217; 
+to classify them as arteries or veins respectively.
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>kind: The vertex kind. This can be either &#8216;a&#8217; for arterial or &#8216;v&#8217; </dt>
+<dd>for venous.</dd>
+<dt>vertices: The indices of the vertices for which the pressure </dt>
+<dd>boundary conditions are to be set.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: G is modified in place.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.boundary_conditions.add_missing_pBCs">
+<tt class="descclassname">vgm.core.boundary_conditions.</tt><tt class="descname">add_missing_pBCs</tt><big>(</big><em>G</em>, <em>pressure=0.0</em><big>)</big><a class="headerlink" href="#vgm.core.boundary_conditions.add_missing_pBCs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures that all components of the graph have a minimum of one pressure 
+boundary condition (this includes unconnected nodes).
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>pressure: (Optional, default=0.0) Pressure value to be set at the </dt>
+<dd>previously unassigned components.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: None - the graph is modified in-place!</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.connector">
+<span id="connector-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">connector</span></tt> Module<a class="headerlink" href="#module-vgm.core.connector" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="vgm.core.connector.Connector">
+<em class="property">class </em><tt class="descclassname">vgm.core.connector.</tt><tt class="descname">Connector</tt><big>(</big><em>G1</em>, <em>G2</em>, <em>strategy=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.connector.Connector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Connects specific vertices of two graphs with each other on the basis 
+of a set of rules, without actually creating edges between these 
+vertices. These &#8216;soft link&#8217; connections may have properties.
+(This concept could be extended to include connections between edges, as
+well as between edges and vertices.)</p>
+<dl class="class">
+<dt id="vgm.core.connector.Connector.Connection">
+<em class="property">class </em><tt class="descname">Connection</tt><big>(</big><em>i1</em>, <em>i2</em><big>)</big><a class="headerlink" href="#vgm.core.connector.Connector.Connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Implements a single &#8216;soft-link&#8217; connection between two graphs and
+serves as a means to store data associated with that connection.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.connector.Connector.connect_nothing">
+<tt class="descclassname">Connector.</tt><tt class="descname">connect_nothing</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.connector.Connector.connect_nothing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates empty connection dictionaries / lists
+INPUT: None
+OUTPUT: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.connector.Connector.connect_vasculature_with_tissue">
+<tt class="descclassname">Connector.</tt><tt class="descname">connect_vasculature_with_tissue</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.connector.Connector.connect_vasculature_with_tissue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects VascularGraphs G1 (vasculature) and G2 (tissue) with 
+traited &#8216;soft links&#8217;. Each vascualar vertex connects to exactly one 
+tissue vertex (its nearest neighbor). A tissue vertex, however, may 
+connect to multiple vascular vertices. Each connection also stores 
+the sum of the products of surface area and exchange coefficient. This
+vertex property is required for the exchange of a given substance 
+between vasculature and tissue (see the Exchange class).
+INPUT: <a href="#id6"><span class="problematic" id="id7">**</span></a>kwargs</p>
+<blockquote>
+<div>substance: The name of the substance that is to be exchanged.</div></blockquote>
+<p>OUTPUT: None</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="diffusion-module">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">diffusion</span></tt> Module<a class="headerlink" href="#diffusion-module" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-vgm.core.diffusion"></span><p>File: diffusion.pyx (starting at line 1)</p>
+<dl class="class">
+<dt id="vgm.core.diffusion.Diffusion">
+<em class="property">class </em><tt class="descclassname">vgm.core.diffusion.</tt><tt class="descname">Diffusion</tt><a class="headerlink" href="#vgm.core.diffusion.Diffusion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>File: diffusion.pyx (starting at line 19)
+This class implements diffusive transport of a passive tracer. Time is</p>
+<blockquote>
+<div>treated explicitly, so the maximum time-step is limited by a cfl condition
+to achieve stability.
+A VascularGraph is associated with every instance of the Diffusion class. 
+The connectivity information as well as initial tracer concentration are 
+taken from the VascularGraph. The diffusion itself is performed, and 
+current tracer concentrations are stored within the Diffusion instance. At 
+the end of the diffusion, the concentration stored in the Diffusion 
+instance can be copied back to the VascularGraph.</div></blockquote>
+<dl class="method">
+<dt id="vgm.core.diffusion.Diffusion.diffuse">
+<tt class="descname">diffuse</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.diffusion.Diffusion.diffuse" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: diffusion.pyx (starting at line 125)
+Diffuses the substance for a given time or a given number of 
+time-steps.
+INPUT: <a href="#id8"><span class="problematic" id="id9">**</span></a>kwargs</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>steps: Number of time-steps to diffuse (using the current </dt>
+<dd>time-step self.dt).</dd>
+<dt>time: Diffusion duration (self.dt is adjusted such that the CFL-</dt>
+<dd>criterion is fulfilled and self.dt is a proper divisor
+of time).</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.diffusion.Diffusion.get_concentration">
+<tt class="descname">get_concentration</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.diffusion.Diffusion.get_concentration" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: diffusion.pyx (starting at line 58)
+Copies the concentration of the substance from the VascularGraph to
+the Diffusion instance.
+INPUT: None
+OUTPUT: None (the property self.concentration is modified in-place)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.diffusion.Diffusion.set_concentration">
+<tt class="descname">set_concentration</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.diffusion.Diffusion.set_concentration" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: diffusion.pyx (starting at line 69)
+Copies the concentration of the substance from the Diffusion 
+instance to the VascularGraph.
+INPUT: None
+OUTPUT: None (the VascularGraph is modified in-place)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.diffusion.Diffusion.update_time_step">
+<tt class="descname">update_time_step</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.diffusion.Diffusion.update_time_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: diffusion.pyx (starting at line 79)
+Updates the time step of the Diffusion instance based on the CFL-
+criterion.
+INPUT: None
+OUTPUT: None (the property self.dt is modified in-place)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.diffusion.Diffusion.update_vVolume">
+<tt class="descname">update_vVolume</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.diffusion.Diffusion.update_vVolume" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: diffusion.pyx (starting at line 102)
+Updates the vertex-volume list self.vVolume. This may be necessary
+when running simulations that include vessel compliance. In rigid 
+networks, however, update_vVolume need only be called once.         
+INPUT: None
+OUTPUT: None (self.vVolume is changed in-place).</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.exchange">
+<span id="exchange-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">exchange</span></tt> Module<a class="headerlink" href="#module-vgm.core.exchange" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="vgm.core.exchange.Exchange">
+<em class="property">class </em><tt class="descclassname">vgm.core.exchange.</tt><tt class="descname">Exchange</tt><big>(</big><em>G1</em>, <em>G2</em>, <em>Connector</em>, <em>substance</em>, <em>strategy</em><big>)</big><a class="headerlink" href="#vgm.core.exchange.Exchange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>This class implements the exchange of a passive tracer between two 
+VascularGraphs. Each vertex of one VascularGraph can connect to an 
+arbitrary number of vertices in the other. These connections do not show up
+as edges in the VascularGraphs, but are stored as &#8216;soft links&#8217; in the 
+Connector of the Exchange instance.</p>
+<dl class="method">
+<dt id="vgm.core.exchange.Exchange.exchange_simple">
+<tt class="descname">exchange_simple</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.exchange.Exchange.exchange_simple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exchanges the substance between the VascularGraphs G1 and G2 based
+on the assumption that the amount exchanged depends linearly on the 
+surface area, concentration difference, and exchange coefficient (see
+Reichold et al., JCBFM, 2009).
+INPUT: <a href="#id10"><span class="problematic" id="id11">**</span></a>kwargs</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>steps: Number of time-steps to advect (using the current </dt>
+<dd>time-step self.dt).</dd>
+<dt>time: Advection duration (self.dt is adjusted such that the CFL-</dt>
+<dd>criterion is fulfilled and self.dt is a proper divisor
+of time).</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: None, G1 and G2 are change in-place.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.exchange.Exchange.update_concentration">
+<tt class="descname">update_concentration</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.exchange.Exchange.update_concentration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produces a local copy of the current substance concentrations of G1 
+and G2.
+INPUT: None
+OUTPUT: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.exchange.Exchange.update_connector">
+<tt class="descname">update_connector</tt><big>(</big><em>Connector</em><big>)</big><a class="headerlink" href="#vgm.core.exchange.Exchange.update_connector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the Connector used to &#8216;soft link&#8217; G1 and G2.
+INPUT: Connector: Instance of the Connector class. Depending on the</p>
+<blockquote>
+<div>exchange strategy used, this Connector needs to 
+fulfill certain requirements (e.g. have a property 
+called exchangeCoefficient).</div></blockquote>
+<p>OUTPUT: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.exchange.Exchange.update_timestep_simple">
+<tt class="descname">update_timestep_simple</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.exchange.Exchange.update_timestep_simple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates timestep value to ensure numerical stability.
+The computation of the time step is based on the fact that all 
+coefficients in the discretized exchange equation need to have the same
+sign (positive in this case). If volume, surface area and exchange 
+coefficient do not change during the simulation, it only needs to be 
+executed once at the beginning.
+WARNING: This will only ensure numerical stability. To be physically</p>
+<blockquote>
+<div>sound, the timestep needs to be small enough that only so much
+substance flows between vertices, which at most equates their 
+respective concentrations!</div></blockquote>
+<p>INPUT: None
+OUTPUT: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.exchange.Exchange.update_volume">
+<tt class="descname">update_volume</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.exchange.Exchange.update_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produces a local copy of the current vertex volumes of G1 and G2.
+INPUT: None
+OUTPUT: None</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.g_input">
+<span id="g-input-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">g_input</span></tt> Module<a class="headerlink" href="#module-vgm.core.g_input" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vgm.core.g_input.read_csv">
+<tt class="descclassname">vgm.core.g_input.</tt><tt class="descname">read_csv</tt><big>(</big><em>vertexFile='vertices.csv'</em>, <em>edgeFile='edges.csv'</em><big>)</big><a class="headerlink" href="#vgm.core.g_input.read_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a VascularGraph from two CSV files, containing 1) vertex 
+coordinates and 2) edgelist and vessel diameters respectively.
+INPUT: vertexFile: The name of the vertex file. The expected format is</p>
+<blockquote>
+<div><blockquote>
+<div>x1, y1, z1
+x2, y2, z2
+...
+Where x,y,z are the floating point coordinates of the
+vertices.</div></blockquote>
+<dl class="docutils">
+<dt>edgeFile: The name of the edge file. The expected format is</dt>
+<dd>a1, b1, d1
+a2, b2, d2
+...
+Where a,b are the vertex indices associated to an edge and
+d is its diameter.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: VascularGraph</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_input.read_amira_spatialGraph">
+<tt class="descclassname">vgm.core.g_input.</tt><tt class="descname">read_amira_spatialGraph</tt><big>(</big><em>filename=None</em>, <em>resolution=1.0</em>, <em>lUnit='um'</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.g_input.read_amira_spatialGraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads an AMIRA spatial graph file (AmiraMesh 3D ASCII 2.0 format) and 
+constructs the corresponding vascular graph from it.</p>
+<dl class="docutils">
+<dt>INPUT: filename: AMIRA spatial graph file (including path). If not </dt>
+<dd><blockquote class="first">
+<div>provided, a graphical file-selection dialog will display.</div></blockquote>
+<dl class="docutils">
+<dt>resolution: The resolution of the srXTM scan, i.e. voxel size </dt>
+<dd>(isotropic resolution is assumend). The default is 1.0.</dd>
+<dt>lUnit: The unit of length properties in the spatialGraph (i.e. </dt>
+<dd>radii, and position vectors). The default is microns.</dd>
+</dl>
+<p><a href="#id12"><span class="problematic" id="id13">**</span></a>kwargs:       
+defaultUnits: The defaultUnits of the VascularGraph created (see</p>
+<blockquote class="last">
+<div>__init__ of the VascularGraph class for details).</div></blockquote>
+</dd>
+</dl>
+<p>OUTPUT: G: Vascular graph in iGraph format.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_input.read_amira_spatialGraph_v2">
+<tt class="descclassname">vgm.core.g_input.</tt><tt class="descname">read_amira_spatialGraph_v2</tt><big>(</big><em>filename=None</em>, <em>resolution=1.0</em>, <em>lUnit='um'</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.g_input.read_amira_spatialGraph_v2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads an AMIRA spatial graph file (AmiraMesh 3D ASCII 2.0 format) and 
+constructs the corresponding vascular graph from it. This version accounts
+for the fact that some spatialGraph files have colocalized vertices, which 
+are actually identical (this happens especially after conversion from an
+mv3d file).</p>
+<dl class="docutils">
+<dt>INPUT: filename: AMIRA spatial graph file (including path). If not </dt>
+<dd><blockquote class="first">
+<div>provided, a graphical file-selection dialog will display.</div></blockquote>
+<dl class="docutils">
+<dt>resolution: The resolution of the srXTM scan, i.e. voxel size </dt>
+<dd>(isotropic resolution is assumend). The default is 1.0.</dd>
+<dt>lUnit: The unit of length properties in the spatialGraph (i.e. </dt>
+<dd>radii, and position vectors). The default is microns.</dd>
+</dl>
+<p><a href="#id14"><span class="problematic" id="id15">**</span></a>kwargs:                  
+defaultUnits: The defaultUnits of the VascularGraph created (see</p>
+<blockquote class="last">
+<div>__init__ of the VascularGraph class for details).</div></blockquote>
+</dd>
+</dl>
+<p>OUTPUT: G: Vascular graph in iGraph format.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_input.read_pkl">
+<tt class="descclassname">vgm.core.g_input.</tt><tt class="descname">read_pkl</tt><big>(</big><em>filename=None</em><big>)</big><a class="headerlink" href="#vgm.core.g_input.read_pkl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a Python pickle file and returns the data stored therein. This can
+be used, for example, to read vascular graphs written to disk using
+&#8216;write_pkl&#8217;.
+INPUT: filename: Pickle file (including path). If not provided, a graphical</p>
+<blockquote>
+<div>file-selection dialog will display.</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: G: Data stored in the pickle file, e.g. vascular graph in iGraph </dt>
+<dd>format.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_input.read_landmarks">
+<tt class="descclassname">vgm.core.g_input.</tt><tt class="descname">read_landmarks</tt><big>(</big><em>filename=None</em>, <em>scalingFactor=1.0</em><big>)</big><a class="headerlink" href="#vgm.core.g_input.read_landmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads an Amira generated file containing landmarks (coordinates), which
+are returned in list form.
+INPUT: filename: Absolute or relative path to the landmarks file. If not</p>
+<blockquote>
+<div><blockquote>
+<div>provided, a graphical file-selection dialog will display.</div></blockquote>
+<dl class="docutils">
+<dt>scalingFactor: The factor by which the coordinates in the landmark</dt>
+<dd>file should be multiplied with (this is useful if the
+landmark file uses units other than desired). The
+default is 1.0, i.e. the coordinates will not be 
+modified.</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: coordinates: List of lists, specifying the coordinates of the </dt>
+<dd>landmarks (i.e.: [[x1,y1,z1],[x2,y2,z2],...]).</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.g_math">
+<span id="g-math-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">g_math</span></tt> Module<a class="headerlink" href="#module-vgm.core.g_math" title="Permalink to this headline">¶</a></h2>
+<p>File: g_math.pyx (starting at line 1)</p>
+<dl class="function">
+<dt id="vgm.core.g_math.r_square">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">r_square</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.r_square" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 123)
+Computes the coefficient of determination (r_square) of fit values to
+data. This is an indication of how well the fit is explaining the variation
+of the data.
+INPUT: observed: List of data values.</p>
+<blockquote>
+<div>predicted: List of modeled values that correspond to the data.</div></blockquote>
+<p>OUTPUT: r_square: Coefficient of determination</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.intervals">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">intervals</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 280)
+Generates a list of intervals from a value range.
+INPUT: start: The lower end of the range.</p>
+<blockquote>
+<div><p>stop: The upper end of the range.
+nIntervals: The number of intervals in which the range should be</p>
+<blockquote>
+<div>divided.</div></blockquote>
+</div></blockquote>
+<p>OUTPUT: List of intervals.
+EXAMPLE: intervals(0,10,2) divides the range [0,10] in two intervals: (0,5)</p>
+<blockquote>
+<div>and (5,10).</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.remove_nans">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">remove_nans</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.remove_nans" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 299)
+Removes NaN  (not a number) entries from an array. If the array contains
+sub-arrays, all sub-arrays containing NaNs are removed.
+INPUT: a: array
+OUTPUT: c: array with NaNs removed</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.fit">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">fit</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 94)
+Least-squares fitting of a given function to data (adjusted from Scipy 
+Cookbook).
+INPUT: function: Function to fit.</p>
+<blockquote>
+<div><p>parameters: Initial guess of the function&#8217;s parameters.
+data: 1D or 2D array holding the data to fit, i.e. [x] and [x,y]</p>
+<blockquote>
+<div>respectively.</div></blockquote>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: y: The solution (or the result of the last iteration for an </dt>
+<dd><blockquote class="first">
+<div>unsuccessful call).</div></blockquote>
+<p class="last">success: Integer reporting on the success of the fitting procedure. 
+r_square: The coefficient of determination of the fit.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.exponential">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">exponential</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.exponential" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 144)
+Returns an exponential function with default parameters.
+INPUT: d: Dictionary supplying any fixed parameters. The key indicates the</p>
+<blockquote>
+<div>index of the fixed parameter, the value its numerical value. Any
+parameter not supplied via d is a free parameter in the returned
+function.</div></blockquote>
+<p>OUTPUT: Function object and default parameters.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.gaussian">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">gaussian</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.gaussian" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 170)
+Returns a Gaussian function with default parameters.
+INPUT: d: Dictionary supplying any fixed parameters. The key indicates the</p>
+<blockquote>
+<div>index of the fixed parameter, the value its numerical value. Any
+parameter not supplied via d is a free parameter in the returned
+function.</div></blockquote>
+<p>OUTPUT: Function object and default parameters.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.gaussian_normalized">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">gaussian_normalized</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.gaussian_normalized" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 195)
+Returns a normalized Gaussian function with default parameters.
+INPUT: d: Dictionary supplying any fixed parameters. The key indicates the</p>
+<blockquote>
+<div>index of the fixed parameter, the value its numerical value. Any
+parameter not supplied via d is a free parameter in the returned
+function.</div></blockquote>
+<p>OUTPUT: Function object and default parameters.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.sine">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">sine</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.sine" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 235)
+Returns a Sine function with default parameters.
+INPUT: None
+OUTPUT: Function object and default parameters.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.cosine">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">cosine</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.cosine" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 249)
+Returns a Cosine function with default parameters.
+INPUT: None
+OUTPUT: Function object and default parameters.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.polynomial">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">polynomial</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.polynomial" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 262)
+Returns a Polynomial function with default parameters.
+INPUT: order: The order of the polynomial function to be constructed.
+OUTPUT: Function object and default parameters.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.poisson">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">poisson</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.poisson" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 222)
+Returns a Poisson distribution function with default parameters.
+INPUT: None
+OUTPUT: Function object and default parameters.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.pca">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">pca</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.pca" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 44)
+Performs a principal component analysis of a dataset.
+INPUT: data: Numpy array or list. The individual datapoints are expected to</p>
+<blockquote>
+<div><blockquote>
+<div>be stacked along axis 0.</div></blockquote>
+<dl class="docutils">
+<dt>fpcOnly: Boolean. Return only the first principal component or the </dt>
+<dd>full output of numpy&#8217;s singular-value-decomposition 
+algorithm?</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: Either the first principal component of the data (a vector of </dt>
+<dd>magnitude 1.0) , or U, s, Vh as described in numpy.svd()</dd>
+<dt>WARNING: scipy&#8217;s singular value decomposition may produce incorrect results</dt>
+<dd>in some cases (look for fixes in future versions and remove this
+warning)!</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.average_path_direction">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">average_path_direction</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.average_path_direction" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 75)
+Computes the average direction of a set of points, which trace out a 
+path. It is a length-weighted average, i.e. the direction of the connecting
+vector between two individual points is weighted stronger, the larger its 
+norm.
+INPUT: points: Array of (2D or 3D) points that trace out a path.
+OUTPUT: normalized</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.hist_pmf">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">hist_pmf</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.hist_pmf" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 317)
+Plots a normalized histogram of data. The normalization is performed such
+that the bin values form a probability mass function (i.e. add up to one).
+INPUT:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>x: x are the data to be binned. x can be an array, a 2D array with </dt>
+<dd>multiple data in its columns, or a list of arrays with data of 
+different length.</dd>
+</dl>
+<p>bins: Either an integer number of bins or a sequence giving the bins.
+newFigure: Use the current figure or create a new one? (Boolean.)
+<a href="#id16"><span class="problematic" id="id17">**</span></a>kwargs</p>
+<blockquote>
+<div>The keyword arguments are passed on to the function np.bar() which 
+does the actual plotting. Refer to its documentation for details.</div></blockquote>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT:</dt>
+<dd>b: Array of matplotlib.patches that make up the histogram / bar plot.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.logit">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">logit</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.logit" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 30)
+Implements the logit function, i.e. ln(x/ (1-x))
+INPUT: x
+OUTPUT: logit(x)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_math.inverse_logit">
+<tt class="descclassname">vgm.core.g_math.</tt><tt class="descname">inverse_logit</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_math.inverse_logit" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_math.pyx (starting at line 37)
+Implements the inverse of the logit function, i.e. exp(x) / (1 + exp(x))
+INPUT: x
+OUTPUT: logit^{-1}(x)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.g_output">
+<span id="g-output-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">g_output</span></tt> Module<a class="headerlink" href="#module-vgm.core.g_output" title="Permalink to this headline">¶</a></h2>
+<p>File: g_output.pyx (starting at line 1)</p>
+<dl class="function">
+<dt id="vgm.core.g_output.write_mv3d">
+<tt class="descclassname">vgm.core.g_output.</tt><tt class="descname">write_mv3d</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_output.write_mv3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_output.pyx (starting at line 25)
+Writes a vascular graph to disk in mv3d format, which is used by 
+John Kaufhold&#8217;s threshold relaxation routine
+INPUT: Graph:  Vascular graph in iGraph format.</p>
+<blockquote>
+<div>filename: Name of the mv3d to be written.</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: Mv3d-file written to disk. Note that the mv3d format contains </dt>
+<dd>diameter information, rather than radii as is the case in the AMIRA
+Mesh format.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_output.write_vtp">
+<tt class="descclassname">vgm.core.g_output.</tt><tt class="descname">write_vtp</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_output.write_vtp" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_output.pyx (starting at line 194)
+Writes a graph in iGraph format to a vtp-file (e.g. for plotting with 
+Paraview). Adds an index to both edges and vertices to make comparisons
+with the iGraph format easier.
+INPUT: graph: Graph in iGraph format</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>filename: Name of the vtp-file to be written. Note that no filename-</dt>
+<dd>ending is appended automatically.</dd>
+<dt>tortuous: Determines whether or not the physiological, i.e. tortuous </dt>
+<dd>geometry of the vascular graph is plotted. If set to
+False, the straight cylinder representation is written
+instead. Note that in the tortuous version, vertices at
+bifurcations appear multiple times - once in every edge
+incident to the bifurcation.</dd>
+<dt>verbose: Whether or not to print to the screen if writing an array </dt>
+<dd>fails.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: vtp-file written to disk.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_output.write_pvd_time_series">
+<tt class="descclassname">vgm.core.g_output.</tt><tt class="descname">write_pvd_time_series</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_output.write_pvd_time_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_output.pyx (starting at line 388)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_output.write_graphml">
+<tt class="descclassname">vgm.core.g_output.</tt><tt class="descname">write_graphml</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_output.write_graphml" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_output.pyx (starting at line 410)
+Saves a vascular graph to a GraphML file.
+INPUT: G:        Vascular graph in iGraph format.</p>
+<blockquote>
+<div>filename: Name (and path) of the output file.</div></blockquote>
+<p>OUTPUT: File written to disk.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_output.write_pkl">
+<tt class="descclassname">vgm.core.g_output.</tt><tt class="descname">write_pkl</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_output.write_pkl" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_output.pyx (starting at line 433)
+Saves a vascular graph to a Python pickle file.
+INPUT: G:        Vascular graph in iGraph format.</p>
+<blockquote>
+<div>filename: Name (and path) of the output file.</div></blockquote>
+<p>OUTPUT: File written to disk.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_output.write_amira_mesh_ascii">
+<tt class="descclassname">vgm.core.g_output.</tt><tt class="descname">write_amira_mesh_ascii</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_output.write_amira_mesh_ascii" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_output.pyx (starting at line 575)
+Saves a vascular graph to AmiraMesh ASCII format.
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div><p>filename: Name (and path) of the output file.
+edgeData: Name of edge data to be included (as list), optional.</p>
+<blockquote>
+<div>Currently, the data is assumed to be of float[1] type.</div></blockquote>
+<dl class="docutils">
+<dt>vertexData: Name of verex data to be included (as list), optional.</dt>
+<dd>Currently, the data is assumed to be of float[1] type.</dd>
+</dl>
+<p>LabelFields: List of LabelFields to be included in the AmiraMesh.
+OUTPUT: File saved to disk</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.g_output.write_landmarks">
+<tt class="descclassname">vgm.core.g_output.</tt><tt class="descname">write_landmarks</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.g_output.write_landmarks" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: g_output.pyx (starting at line 677)
+Writes an Amira Mesh Landmark file to disk.
+INPUT: coordinates: List of 3D coordinates (list of lists).</p>
+<blockquote>
+<div>filename: Absolute or relative filename path.</div></blockquote>
+<p>OUTPUT: None (landmark file written to disk).</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.guiTools">
+<span id="guitools-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">guiTools</span></tt> Module<a class="headerlink" href="#module-vgm.core.guiTools" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vgm.core.guiTools.uigetdir">
+<tt class="descclassname">vgm.core.guiTools.</tt><tt class="descname">uigetdir</tt><big>(</big><em>title='Please select a directory'</em><big>)</big><a class="headerlink" href="#vgm.core.guiTools.uigetdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Brings up a GUI dialog to select a directory. The directory name is 
+returned.
+INPUT: title: The title of the dialog (optional).
+OUTPUT: Full path-name of the directory that was chosen.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.guiTools.uigetfile">
+<tt class="descclassname">vgm.core.guiTools.</tt><tt class="descname">uigetfile</tt><big>(</big><em>title='Please select a file'</em><big>)</big><a class="headerlink" href="#vgm.core.guiTools.uigetfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Brings up a GUI dialog to select a file. The filename is returned. 
+INPUT: title: The title of the dialog (optional).
+OUTPUT: Full path-name of the file that was chosen.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.guiTools.uigetfiles">
+<tt class="descclassname">vgm.core.guiTools.</tt><tt class="descname">uigetfiles</tt><big>(</big><em>title='Please select files'</em><big>)</big><a class="headerlink" href="#vgm.core.guiTools.uigetfiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Brings up a GUI dialog to select multiple files. The filenames are 
+returned as a list. 
+INPUT: title: The title of the dialog (optional).
+OUTPUT: Full path-name of the files that were chosen as list.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.linearSystem">
+<span id="linearsystem-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">linearSystem</span></tt> Module<a class="headerlink" href="#module-vgm.core.linearSystem" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="vgm.core.linearSystem.LinearSystem">
+<em class="property">class </em><tt class="descclassname">vgm.core.linearSystem.</tt><tt class="descname">LinearSystem</tt><big>(</big><em>G</em>, <em>assert_pBCs=True</em>, <em>bound_cond=None</em><big>)</big><a class="headerlink" href="#vgm.core.linearSystem.LinearSystem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="vgm.core.linearSystem.LinearSystem.solve">
+<tt class="descname">solve</tt><big>(</big><em>method</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.linearSystem.LinearSystem.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves the linear system A x = b for the vector of unknown pressures
+x, either using a direct solver or an iterative AMG solver. From the
+pressures, the flow field is computed.
+INPUT: method: This can be either &#8216;direct&#8217; or &#8216;iterative&#8217;</p>
+<blockquote>
+<div><p><a href="#id18"><span class="problematic" id="id19">**</span></a>kwargs 
+precision: The accuracy to which the ls is to be solved. If not</p>
+<blockquote>
+<div>supplied, machine accuracy will be used.</div></blockquote>
+<dl class="docutils">
+<dt>maxiter: The maximum number of iterations. The default value for</dt>
+<dd>the iterative solver is 250.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: None - G is modified in place.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.linearSystem.LinearSystem.update">
+<tt class="descname">update</tt><big>(</big><em>newGraph=None</em>, <em>assert_pBCs=True</em>, <em>bound_cond=None</em><big>)</big><a class="headerlink" href="#vgm.core.linearSystem.LinearSystem.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs the linear system A x = b where the matrix A contains the 
+conductance information of the vascular graph, the vector b specifies 
+the boundary conditions and the vector x holds the pressures at the 
+vertices (for which the system needs to be solved). x will have the 
+same units of [pressure] as the pBC vertices.</p>
+<p>Note that in this approach, A and b contain a mixture of dimensions, 
+i.e. A and b have dimensions of [1.0] and [pressure] in the pBC case,
+[conductance] and [conductance*pressure] otherwise, the latter being 
+rBCs. This has the advantage that no re-indexing is required as the 
+matrices contain all vertices.
+INPUT: newGraph: Vascular graph in iGraph format to replace the</p>
+<blockquote>
+<div><blockquote>
+<div>previous self._G. (Optional, default=None.)</div></blockquote>
+<dl class="docutils">
+<dt>assert_pBCs: (Optional, default=True.) Boolean whether or not to</dt>
+<dd>check components for correct pressure boundary
+conditions.</dd>
+<dt>bound_cond: (Optional, default=None.) Artificial conductance</dt>
+<dd>limits as list [cond_min, cond_max]. If the spread
+of conductance values is very large, this step may
+be necessary to produce accurate results.</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: A: Matrix A of the linear system, holding the conductance </dt>
+<dd><blockquote class="first">
+<div>information.</div></blockquote>
+<dl class="last docutils">
+<dt>b: Vector b of the linear system, holding the boundary </dt>
+<dd>conditions.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.linearSystem_dynamic">
+<span id="linearsystem-dynamic-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">linearSystem_dynamic</span></tt> Module<a class="headerlink" href="#module-vgm.core.linearSystem_dynamic" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="vgm.core.linearSystem_dynamic.LinearSystemDynamic">
+<em class="property">class </em><tt class="descclassname">vgm.core.linearSystem_dynamic.</tt><tt class="descname">LinearSystemDynamic</tt><big>(</big><em>G</em>, <em>dt</em>, <em>assert_pBCs=True</em><big>)</big><a class="headerlink" href="#vgm.core.linearSystem_dynamic.LinearSystemDynamic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="vgm.core.linearSystem_dynamic.LinearSystemDynamic.solve_direct">
+<tt class="descname">solve_direct</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.linearSystem_dynamic.LinearSystemDynamic.solve_direct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves the linear system A x = b using a direct solver.
+INPUT: None.
+OUTPUT: None - G is modified in place.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.linearSystem_dynamic.LinearSystemDynamic.solve_iterative">
+<tt class="descname">solve_iterative</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.linearSystem_dynamic.LinearSystemDynamic.solve_iterative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves the linear system A x = b using an iterative AMG solver.
+INPUT: <a href="#id20"><span class="problematic" id="id21">**</span></a>kwargs</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>precision: The accuracy to which the ls is to be solved. If not </dt>
+<dd>supplied, machine accuracy will be used.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: None - G is modified in place.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.linearSystem_htd">
+<span id="linearsystem-htd-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">linearSystem_htd</span></tt> Module<a class="headerlink" href="#module-vgm.core.linearSystem_htd" title="Permalink to this headline">¶</a></h2>
+<p>This module implements red blood cell transport in vascular networks 
+discretely, i.e. resolving all RBCs. As would be expected, the computational 
+expense increases with network size and timesteps can become very small. An
+srXTM sample of ~20000 nodes will take about 1/2h to evolve 1ms at Ht0==0.5.
+A performance analysis revealed the worst bottlenecks, which are:
+_plot_rbc()
+_update_blocked_edges_and_timestep()
+Smaller CPU-time eaters are:
+_update_flow_and_velocity()
+_update_flow_sign()
+_propagate_rbc()</p>
+<dl class="class">
+<dt id="vgm.core.linearSystem_htd.LinearSystemHtd">
+<em class="property">class </em><tt class="descclassname">vgm.core.linearSystem_htd.</tt><tt class="descname">LinearSystemHtd</tt><big>(</big><em>G</em>, <em>dThreshold=7.0</em>, <em>ht0=0.5</em>, <em>assert_well_posedness=True</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.linearSystem_htd.LinearSystemHtd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Implements and extends the discrete red blood cell transport as proposed
+by Obrist and coworkers (2010).</p>
+<dl class="method">
+<dt id="vgm.core.linearSystem_htd.LinearSystemHtd.evolve">
+<tt class="descname">evolve</tt><big>(</big><em>time</em>, <em>method</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.linearSystem_htd.LinearSystemHtd.evolve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves the linear system A x = b using a direct or AMG solver.
+INPUT: time: The duration for which the flow should be evolved.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>method: Solution-method for solving the linear system. This can</dt>
+<dd>be either &#8216;direct&#8217; or &#8216;iterative&#8217;</dd>
+</dl>
+<p><a href="#id22"><span class="problematic" id="id23">**</span></a>kwargs
+precision: The accuracy to which the ls is to be solved. If not</p>
+<blockquote>
+<div>supplied, machine accuracy will be used. (This only
+applies to the iterative solver)</div></blockquote>
+<dl class="docutils">
+<dt>plotPrms: Provides the parameters for plotting the RBC </dt>
+<dd>positions over time. List format with the following
+content is expected: [start, stop, step, reset].
+&#8216;reset&#8217; is a boolean which determines if the current 
+RBC evolution should be added to the existing history
+or started anew.</dd>
+<dt>samplePrms: Provides the parameters for sampling, i.e. writing </dt>
+<dd>a series of data-snapshots to disk for later 
+analysis. List format with the following content is
+expected: [start, stop, step, reset]. &#8216;reset&#8217; is a
+boolean which determines if the data samples should
+be added to the existing database or a new database
+should be set up.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: None (files are written to disk)</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.linearSystem_pries">
+<span id="linearsystem-pries-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">linearSystem_pries</span></tt> Module<a class="headerlink" href="#module-vgm.core.linearSystem_pries" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="vgm.core.linearSystem_pries.LinearSystemPries">
+<em class="property">class </em><tt class="descclassname">vgm.core.linearSystem_pries.</tt><tt class="descname">LinearSystemPries</tt><big>(</big><em>G</em>, <em>assert_pBCs=True</em>, <em>resetHtd=True</em><big>)</big><a class="headerlink" href="#vgm.core.linearSystem_pries.LinearSystemPries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Solves a VascularGraph for pressure and flow. The influence of red blood
+cells is taken explicitly into account.
+This is an iterative method consisting of two main parts: the linear
+analysis and the rheological analysis. In the linear analysis part (which
+gives this class its name), a linear system Ax = b is constructed from
+current vessel conduction values and solved to yield pressure and flow.
+In the rheological analysis part, a hematocrit redistribution is performed
+based on current flow values and the empirical relations found by Pries et
+al. (1990).
+Note that the method as a whole is non-linear.</p>
+<dl class="method">
+<dt id="vgm.core.linearSystem_pries.LinearSystemPries.integrity_check">
+<tt class="descname">integrity_check</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.linearSystem_pries.LinearSystemPries.integrity_check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asserts that mass conservation is honored by writing the sum of in-
+and outflow as well as the sum of the in- and outgoing discharge
+hematocrit to the graph vertices as &#8216;flowSum&#8217; and &#8216;htdSum&#8217;
+INPUT: None
+OUTPUT: None, flow and htd sums added as vertex properties in-place.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.linearSystem_pries.LinearSystemPries.solve">
+<tt class="descname">solve</tt><big>(</big><em>method</em>, <em>precision=None</em>, <em>maxIterations=1000.0</em>, <em>limiter=1.5</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.linearSystem_pries.LinearSystemPries.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve for pressure, flow, hematocrit and conductance by iterating
+over linear and rheological analysis. Stop when either the desired
+accuracy has been achieved or the maximum number of iterations have
+been performed.
+INPUT: method: This can be either &#8216;direct&#8217; or &#8216;iterative&#8217;</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>precision: Desired precision, measured in the maximum amount by</dt>
+<dd>which the pressure may change from one iteration
+level to the next. If the maximum change is below
+threshold, the iteration is aborted.</dd>
+</dl>
+<p>maxIterations: The maximum number of iterations to perform.
+limiter: Limits change from one iteration level to the next, if</p>
+<blockquote>
+<div>&gt; 1.0, at limiter == 1.0 the change is unmodified.</div></blockquote>
+<p><a href="#id24"><span class="problematic" id="id25">**</span></a>kwargs
+precisionLS: The accuracy to which the ls is to be solved. If</p>
+<blockquote>
+<div>not supplied, machine accuracy will be used. (This
+only applies to the iterative solver)</div></blockquote>
+</div></blockquote>
+<p>OUTPUT: None, the vascular graph is modified in-place.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.misc">
+<span id="misc-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">misc</span></tt> Module<a class="headerlink" href="#module-vgm.core.misc" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vgm.core.misc.add_geometric_edge_properties">
+<tt class="descclassname">vgm.core.misc.</tt><tt class="descname">add_geometric_edge_properties</tt><big>(</big><em>G</em><big>)</big><a class="headerlink" href="#vgm.core.misc.add_geometric_edge_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds angle to cortical surface (in degrees), cortical depth, volume and
+cross section to each edge in the graph.
+INPUT: G:  Vascular graph in iGraph format.
+OUTPUT: None - the vascular graph G is modified in place.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.misc.add_fluiddynamical_properties">
+<tt class="descclassname">vgm.core.misc.</tt><tt class="descname">add_fluiddynamical_properties</tt><big>(</big><em>G</em><big>)</big><a class="headerlink" href="#vgm.core.misc.add_fluiddynamical_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds transit-time and velocity to each edge in the graph.
+INPUT: G:  Vascular graph in iGraph format.
+OUTPUT: None - the vascular graph G is modified in place.
+WARNING: The edge property &#8216;flow&#8217; is expected to be assigned and is</p>
+<blockquote>
+<div>interpreted as volume flow.</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.misc.vertices_from_coordinates">
+<tt class="descclassname">vgm.core.misc.</tt><tt class="descname">vertices_from_coordinates</tt><big>(</big><em>G</em>, <em>coordinates</em>, <em>diameter_ll=0.0</em>, <em>isEndpoint=False</em><big>)</big><a class="headerlink" href="#vgm.core.misc.vertices_from_coordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of x,y,z coordinates, locate the most closely matching set
+of verties in a vascular graph of iGraph format.
+INPUT: G:  Vascular graph in iGraph format.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>coordinates: List of lists specifying the coordinates (i.e.: </dt>
+<dd>[[x1,y1,z1],[x2,y2,z2],...]).</dd>
+<dt>diameter_ll: (Optional) lower limit of edge diameter, to select only</dt>
+<dd>those vertices bordering a sufficiently large diameter
+edge. Default is 0.0, i.e. all vertices are considered.</dd>
+<dt>isEndpoint: Boolean whether or not the vertex searched for is </dt>
+<dd>required to be an endpoint. Default is &#8216;False&#8217;.</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: vertex_indices: Array of vertex indices that represent the best </dt>
+<dd><blockquote class="first">
+<div>matches.</div></blockquote>
+<dl class="last docutils">
+<dt>distances: Array of distances that the best matching vertices are </dt>
+<dd>separated from the supplied coordinates. Units match 
+those of the graph vertex coordinates.</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.misc.add_kind_and_conductance">
+<tt class="descclassname">vgm.core.misc.</tt><tt class="descname">add_kind_and_conductance</tt><big>(</big><em>G</em>, <em>aVertices</em>, <em>vVertices</em>, <em>dThreshold</em><big>)</big><a class="headerlink" href="#vgm.core.misc.add_kind_and_conductance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds vessel kind as well as conductance to the graph. The vessel kind is
+assigned based on a connected component analysis and vertices of known 
+kind. The vessel conductance is computed from fitted literature values. At 
+capillary level, a distinction between &#8216;artery&#8217; and &#8216;vein&#8217; is difficult to 
+make. Moreover, the relative apparent viscosity does not differ 
+dramatically. Therefore, all capillaries (as well as undefined vessels) are
+set to arterial conductance.    
+INPUT: G: VascularGraph.</p>
+<blockquote>
+<div><p>aVertices: Vertices that belong to arterial trees.
+vVertices: Vertices that belong to venous trees.
+dThreshold: The diameter threshold below equal which vessels are</p>
+<blockquote>
+<div>considered as capillaries.</div></blockquote>
+</div></blockquote>
+<p>OUTPUT: None - G is modified in-place.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.misc.add_conductance">
+<tt class="descclassname">vgm.core.misc.</tt><tt class="descname">add_conductance</tt><big>(</big><em>G</em>, <em>kind</em>, <em>edges=None</em><big>)</big><a class="headerlink" href="#vgm.core.misc.add_conductance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds conductance values to the edges of the graph (consult the relevant
+functions in the physiology module for more information.
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>kind: The vessel kind. This can be either &#8216;a&#8217; for artery or &#8216;v&#8217; for</dt>
+<dd>vein.</dd>
+<dt>edges: (Optional.) The indices of the edges to be given a </dt>
+<dd>conductance value. If no indices are supplied, all edges are 
+considered.</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.misc.edge_property_vs_depth">
+<tt class="descclassname">vgm.core.misc.</tt><tt class="descname">edge_property_vs_depth</tt><big>(</big><em>G</em>, <em>property</em>, <em>intervals</em>, <em>eIndices=None</em>, <em>function=None</em><big>)</big><a class="headerlink" href="#vgm.core.misc.edge_property_vs_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generic function to compile and optionally process edge information of a
+vascular graph versus the cortical depth.
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div><p>property: Which edge property to operate on.
+intervals: Intervals of cortical depth in which the sample is split.</p>
+<blockquote>
+<div>(Expected</div></blockquote>
+<dl class="docutils">
+<dt>eIndices: (Optional.) Indices of edges to consider. If not provided,</dt>
+<dd>all edges are taken into account.</dd>
+<dt>function: (Optional.) Function which to perform on the compiled data</dt>
+<dd>of each interval.</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: The compiled (and possibly processed) information as a list (one </dt>
+<dd>entry per interval).</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.misc.update_lengths">
+<tt class="descclassname">vgm.core.misc.</tt><tt class="descname">update_lengths</tt><big>(</big><em>G</em><big>)</big><a class="headerlink" href="#vgm.core.misc.update_lengths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the lengths property of all edges in the VascularGraph (adds it,
+if it does not exist).
+INPUT: G: VascularGraph.
+OUTPUT: None</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.misc.update_length">
+<tt class="descclassname">vgm.core.misc.</tt><tt class="descname">update_length</tt><big>(</big><em>G</em><big>)</big><a class="headerlink" href="#vgm.core.misc.update_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the length property of all edges in the VascularGraph (adds it,
+if it does not exist).
+INPUT: G: VascularGraph.
+OUTPUT: None</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.misc.update_volume">
+<tt class="descclassname">vgm.core.misc.</tt><tt class="descname">update_volume</tt><big>(</big><em>G</em><big>)</big><a class="headerlink" href="#vgm.core.misc.update_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the volume property of all edges in the VascularGraph (adds it,
+if it does not exist).
+INPUT: G: VascularGraph.
+OUTPUT: None</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.misc.update_depth">
+<tt class="descclassname">vgm.core.misc.</tt><tt class="descname">update_depth</tt><big>(</big><em>G</em><big>)</big><a class="headerlink" href="#vgm.core.misc.update_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the depth property of all edges in the VascularGraph (adds it,
+if it does not exist).
+INPUT: G: VascularGraph.
+OUTPUT: None</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.paths">
+<span id="paths-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">paths</span></tt> Module<a class="headerlink" href="#module-vgm.core.paths" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vgm.core.paths.all_paths_between_two_vertices">
+<tt class="descclassname">vgm.core.paths.</tt><tt class="descname">all_paths_between_two_vertices</tt><big>(</big><em>G</em>, <em>v1</em>, <em>v2</em>, <em>max_path_length=25</em>, <em>direction='out'</em><big>)</big><a class="headerlink" href="#vgm.core.paths.all_paths_between_two_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds all possible paths between two vertices of a graph. The paths can
+be directed or not directed, depending on the type of graph.
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div><p>v1: First vertex.
+v2: Second vertex.
+max_path_length: Maximum number of vertices (including v1 and v2)</p>
+<blockquote>
+<div>that a path may contain in order to be considered.</div></blockquote>
+<dl class="docutils">
+<dt>direction: Way to traverse a directed graph. Can be either &#8216;out&#8217;, </dt>
+<dd>&#8216;in&#8217;, or &#8216;all&#8217;. Is ignored in undirected graphs.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: paths: The possible paths between v1 and v2.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.paths.all_paths_of_given_length">
+<tt class="descclassname">vgm.core.paths.</tt><tt class="descname">all_paths_of_given_length</tt><big>(</big><em>G</em>, <em>v</em>, <em>max_path_length=25</em>, <em>direction='out'</em><big>)</big><a class="headerlink" href="#vgm.core.paths.all_paths_of_given_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds all posible paths from a given vertex that have a specific length.
+The paths can be directed or not directed, depending on the type of graph.
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>v: Vertex from which the search is to be started. Alternatively, a</dt>
+<dd>tuple of two vertices can be supplied that indicates a starting
+edge and direction, rather than a single vertex.</dd>
+<dt>max_path_length: Maximum number of vertices (including v) that a path </dt>
+<dd>may contain in order to be considered.</dd>
+<dt>direction: Way to traverse a directed graph. Can be either &#8216;out&#8217;, </dt>
+<dd>&#8216;in&#8217;, or &#8216;all&#8217;. Is ignored in undirected graphs.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: paths: The possible paths from v.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.paths.shortest_path_between_two_vertices">
+<tt class="descclassname">vgm.core.paths.</tt><tt class="descname">shortest_path_between_two_vertices</tt><big>(</big><em>G</em>, <em>v1</em>, <em>v2</em>, <em>weights=None</em><big>)</big><a class="headerlink" href="#vgm.core.paths.shortest_path_between_two_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the shortest path between two vertices 
+INPUT: G:  Vascular graph in iGraph format.</p>
+<blockquote>
+<div><p>v1: Source vertex
+v2: Target vertex           
+weights: Edge weights in a list or the name of an edge attribute</p>
+<blockquote>
+<div>holding edge weights. If C{None}, all edges are assumed to 
+have equal weight.</div></blockquote>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: path: At most one shortest path between the two given vertices.</dt>
+<dd>Note that for directed graphs, the order of v1 and v2 
+matters!</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.paths.paths_to_subgraph">
+<tt class="descclassname">vgm.core.paths.</tt><tt class="descname">paths_to_subgraph</tt><big>(</big><em>G</em>, <em>paths</em>, <em>filename=None</em><big>)</big><a class="headerlink" href="#vgm.core.paths.paths_to_subgraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs a subgraph of the input-graph, based on the given paths. That
+is, only nodes that are listed in the variable &#8216;paths&#8217; will be included in
+the subgraph. Optionally, the subgraph can be saved to disk in form of a
+vtp-file.
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>paths: Paths in the vascular graph in form of a list of vertex-</dt>
+<dd>lists. Note that this list can be produced with
+&#8216;all_paths_between_two vertices&#8217; or
+&#8216;all_paths_of_a_given_length&#8217;.</dd>
+<dt>filename: (Optional.) Name of the vtp-file to which the subgraph</dt>
+<dd>should be saved.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: sg: Subgraph containing only those nodes in the paths variable.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.physiology">
+<span id="physiology-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">physiology</span></tt> Module<a class="headerlink" href="#module-vgm.core.physiology" title="Permalink to this headline">¶</a></h2>
+<p>File: physiology.pyx (starting at line 1)</p>
+<dl class="class">
+<dt id="vgm.core.physiology.Physiology">
+<em class="property">class </em><tt class="descclassname">vgm.core.physiology.</tt><tt class="descname">Physiology</tt><a class="headerlink" href="#vgm.core.physiology.Physiology" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>File: physiology.pyx (starting at line 23)
+This class implements physiological parameters and functions related to</p>
+<blockquote>
+<div>blood flow.</div></blockquote>
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.apparent_intrinsic_viscosity">
+<tt class="descname">apparent_intrinsic_viscosity</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.apparent_intrinsic_viscosity" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 840)
+Returns the apparent intrinsic viscosity.
+This quantity actually depends on the vessel diameter, as well as on
+the blood velocity, as shown in 
+Numerical Simulation of Cell Motion in Tube Flow, Pozrikidis 2004. 
+Currently, however, a fixed value is chosen that lies within the range
+of computed values and was predicted theoretically by Einstein.
+INPUT: diameter: The diameter of the containing vessel.
+OUTPUT: The apparent intrinisc viscosity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.blood_density">
+<tt class="descname">blood_density</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.blood_density" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 119)
+Returns a whole-blood density value, according to the given vessel 
+specifications.</p>
+<p>Blood density is computed from vessel volume, the hematocrit and the 
+densities of plasma and red blood cells (1025 kg/m^3 and 1125 kg/m^3 
+respectively, taken from en.Wikipedia.org for human blood)
+INPUT: diameter: Vessel diameter [m]</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>kind: Type of blood vessel. This may be either &#8216;a&#8217; or &#8216;v&#8217; for </dt>
+<dd>&#8216;artery&#8217; or &#8216;vein&#8217; respectively.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: Blood density</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.blood_density_average">
+<tt class="descname">blood_density_average</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.blood_density_average" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 104)
+Returns an average whole-blood density value.
+Value is taken from en.Wikipedia.org for human blood (1025 kg/m^3 and 
+1125 kg/m^3 are the respective densities of plasma and cells)
+INPUT: None
+OUTPUT: Average whole-blood density.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.blood_pressure">
+<tt class="descname">blood_pressure</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.blood_pressure" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 147)
+Returns a blood pressure value, according to the given vessel 
+specifications.</p>
+<p>Data from Lipowsky 2005 (Microvascular Rheology and Hemodynamics) have
+been fitted using Matlab&#8217;s cftool. 
+INPUT: d: Diameter of the blood vessel.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>kind: Type of blood vessel. This may be either &#8216;a&#8217; or &#8216;v&#8217; for </dt>
+<dd>&#8216;artery&#8217; or &#8216;vein&#8217; respectively.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: Blood pressure
+WARNING: This function only produces reliable results for diameters</p>
+<blockquote>
+<div>between 8 and 60 micron!</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.blood_velocity">
+<tt class="descname">blood_velocity</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.blood_velocity" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 68)
+Returns the blood velocity according to a fit to Zweifach&#8217;s data of
+cat model (Zweifach 1974).
+INPUT: d: Diameter of the blood vessel.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>kind: Type of blood vessel. This may be either &#8216;a&#8217; or &#8216;v&#8217; for </dt>
+<dd>&#8216;artery&#8217; or &#8216;vein&#8217; respectively.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: blood velocity
+WARNING: This function only produces reliable results for diameters</p>
+<blockquote>
+<div>between 8 and 60 micron vessel diameter!</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.conductance">
+<tt class="descname">conductance</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.conductance" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 783)
+Returns the conductance of a blood vessel depending on its diameter 
+and length, as well as the dynamic viscosity of blood.
+INPUT: diameter: Vessel diameter.</p>
+<blockquote>
+<div><p>length: Vessel length.
+nu_blood: Dynamic blood viscosity [pressure * time].
+alpha: Factor that models the departure of the lumen from a</p>
+<blockquote>
+<div>circular cross-section. Optional, default = 1.0.</div></blockquote>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: Vessel conductance [volume / pressure / time] = </dt>
+<dd>[length^4 time / mass].</dd>
+<dt>WARNING: The vessel conductance does not include density. </dt>
+<dd>I.e. pressure_difference * conductance = volume_flow</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.dA_by_dp">
+<tt class="descname">dA_by_dp</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.dA_by_dp" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 727)
+Returns the derivative cross-sectional area by pressure of a 
+compliant vessel.</p>
+<p>Vessel compliance as described by Mandeville et al. 1999
+P-P_ic = (V/A)^b
+A = V_0 / (P_0 - P_ic)^(1/b)
+&lt;==&gt; R = R_0 * ((P-P_ic) / (P_0-P_ic))^(1/(2*b))</p>
+<p>R:    vessel radius
+V:    vessel volume = pi * radius^2 * length
+P:    vessel pressure = mean of the two node pressures
+P_ic: intra-cranial pressure = 10 mmHg (Albeck et al. 1991,</p>
+<blockquote>
+<div>Alperin et al. 2000)</div></blockquote>
+<dl class="docutils">
+<dt>b:    vascular compliance parameter = 2 </dt>
+<dd><dl class="first docutils">
+<dt>(1&lt;=b&lt;=3 Dunn et al. 2005, Jones et al. 2001, 2002,</dt>
+<dd>Mandeville et al. 1999, Sheth et al. 2004b)</dd>
+</dl>
+<p class="last">currently b=2 (following Boas et al. 2008), but this may be
+changed to depend on vessel size.</p>
+</dd>
+</dl>
+<p>subscript &#8216;0&#8217; denotes the old values (i.e. at the last time step)</p>
+<p>Kong et al. have extended the above Balloon/Windkessel model with an 
+additional state variable (Kong et al. 2004, see also Zheng et al. 
+2005), however values for the additional parameters are not (yet) 
+readily available.</p>
+<dl class="docutils">
+<dt>INPUT: oldPressure: Pressure at the old timestep</dt>
+<dd><p class="first">newPressure: Pressure at the new timestep
+oldRadius: Radius at the old timestep
+vesselComplianceParameter: Dimensionless vessel compliance</p>
+<blockquote>
+<div>parameter</div></blockquote>
+<p class="last">ICPressure: Intra-cranial pressure</p>
+</dd>
+</dl>
+<p>OUTPUT: Radius change [length]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.discharge_hematocrit">
+<tt class="descname">discharge_hematocrit</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.discharge_hematocrit" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 306)
+Convenience function that first calls &#8216;tube_hematocrit&#8217; and then 
+passes the result to &#8216;tube_to_discharge_hematocrit&#8217;
+INPUT: diameter: Vessel diameter</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>kind: Type of blood vessel. This may be either &#8216;a&#8217; or &#8216;v&#8217; for </dt>
+<dd>&#8216;artery&#8217; or &#8216;vein&#8217; respectively.</dd>
+</dl>
+<p>invivo: Boolean, whether or not to consider ESL influence.</p>
+</div></blockquote>
+<p>OUTPUT: Hematocrit [fraction ([0,1])]
+WARNING: This function only produces reliable results for diameters</p>
+<blockquote>
+<div>between 7 and 70 micron!</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.discharge_to_tube_hematocrit">
+<tt class="descname">discharge_to_tube_hematocrit</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.discharge_to_tube_hematocrit" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 227)
+Converts tube hematocrit to discharge hematocrit based on the
+formula provided by Pries and Neuhaus 1992.
+The extension to in-vivo was presented in a 2005 paper &#8216;Microvascular
+blood viscosity in vivo and the endothelial surface layer&#8217;.
+Note that this is the &#8216;rat blood&#8217; version of the formula. The
+diameter dependent exponents have been scaled with the cube
+root of the mean red blood cell volume (rat 55fl, human 92fl).
+INPUT: discharge_ht: Discharge Ht expressed as a fraction [0,1]</p>
+<blockquote>
+<div>d: Diameter of the vessel.
+invivo: Boolean, whether or not to consider ESL influence.</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: discharge_hematocrit: Discharge Ht expressed as a fraction </dt>
+<dd>[0,1]</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.dp2dr">
+<tt class="descname">dp2dr</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.dp2dr" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 664)
+Returns radius change of a compliant vessel based on change in 
+pressure.</p>
+<p>Vessel compliance as described by Mandeville et al. 1999
+P-P_ic = (V/A)^b
+A = V_0 / (P_0 - P_ic)^(1/b)
+&lt;==&gt; R = R_0 * ((P-P_ic) / (P_0-P_ic))^(1/(2*b))</p>
+<p>R:    vessel radius
+V:    vessel volume = pi * radius^2 * length
+P:    vessel pressure = mean of the two node pressures
+P_ic: intra-cranial pressure = 10 mmHg (Albeck et al. 1991,</p>
+<blockquote>
+<div>Alperin et al. 2000)</div></blockquote>
+<dl class="docutils">
+<dt>b:    vascular compliance parameter = 2 </dt>
+<dd><dl class="first docutils">
+<dt>(1&lt;=b&lt;=3 Dunn et al. 2005, Jones et al. 2001, 2002,</dt>
+<dd>Mandeville et al. 1999, Sheth et al. 2004b)</dd>
+</dl>
+<p class="last">currently b=2 (following Boas et al. 2008), but this may be
+changed to depend on vessel size.</p>
+</dd>
+</dl>
+<p>subscript &#8216;0&#8217; denotes the old values (i.e. at the last time step)</p>
+<p>Kong et al. have extended the above Balloon/Windkessel model with an 
+additional state variable (Kong et al. 2004, see also Zheng et al. 
+2005), however values for the additional parameters are not (yet)
+readily available.</p>
+<dl class="docutils">
+<dt>INPUT: oldPressure: Pressure at the old timestep</dt>
+<dd><p class="first">newPressure: Pressure at the new timestep
+oldRadius: Radius at the old timestep
+vesselComplianceParameter: Dimensionless vessel compliance</p>
+<blockquote>
+<div>parameter (optional, default is 2.0)</div></blockquote>
+<dl class="last docutils">
+<dt>ICPressure: Intra-cranial pressure (optional, see above for </dt>
+<dd>default)</dd>
+</dl>
+</dd>
+</dl>
+<p>OUTPUT: Radius change [length]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.dynamic_blood_viscosity">
+<tt class="descname">dynamic_blood_viscosity</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.dynamic_blood_viscosity" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 398)
+Returns the dynamic viscosity of blood at 37 degrees centigrate,
+depending on the size and type of the blood vessel.
+INPUT: diameter: Vessel diameter.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>kind: Type of blood vessel. This may be either &#8216;a&#8217; or &#8216;v&#8217; for </dt>
+<dd>&#8216;artery&#8217; or &#8216;vein&#8217; respectively.</dd>
+<dt>invivo: This boolean determines whether to compute in vivo </dt>
+<dd>viscosity (the default) or in vitro.</dd>
+</dl>
+<p>tube_ht: Tube hematocrit. Empirical data used, if not provided.
+discharge_ht: Discharge hematocrit. Empirical data used, if not</p>
+<blockquote>
+<div>provided.</div></blockquote>
+</div></blockquote>
+<p>OUTPUT: Dynamic viscosity of blood
+WARNING: This function only produces reliable results for diameters</p>
+<blockquote>
+<div>between 7 and 70 micron. Diameters outside this interval will 
+be adjusted to match the respective boundaries for the 
+intermediate computations, i.e. [7,70] for the hematocrit 
+computation and [3.3,1978] for the viscosity computation. That
+is, in the ranges [3.3,7.0] and [70.0,1978.0] nu is computed 
+using inaccurate ht values but correct diameter values in an 
+attempt to minimize error.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.dynamic_plasma_viscosity">
+<tt class="descname">dynamic_plasma_viscosity</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.dynamic_plasma_viscosity" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 449)
+Returns the dynamic viscosity of human plasma at 37 degrees 
+centigrate, as reported in &#8216;Plasma viscosity: A forgotten variable&#8217; by 
+Kesmarky et al, 2008.
+INPUT: None
+OUTPUT: Dynamic viscosity of human plasma.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.effective_esl_thickness">
+<tt class="descname">effective_esl_thickness</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.effective_esl_thickness" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 504)
+Returns both the effective width of the endothelial surface layer 
+(which depends on the discharge hematocrit), according to the empirical
+model of Pries and Secomb in their 2005 paper &#8216;Microvascular blood 
+viscosity in vivo and the endothelial surface layer&#8217;.
+INPUT: diameter: Anatomical diameter of the blood vessel.</p>
+<blockquote>
+<div>htd: Discharge hematocrit.</div></blockquote>
+<p>OUTPUT: Effective width of the ESL (dependent on the hematocrit).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.effective_rbc_length">
+<tt class="descname">effective_rbc_length</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.effective_rbc_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 805)
+Returns the effective length of a red blood cell (RBC) within a
+blood vessel of given diameter.        
+INPUT: diameter: The diameter of the containing vessel.
+OUTPUT: The effective length of an RBC.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.effective_vessel_diameter">
+<tt class="descname">effective_vessel_diameter</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.effective_vessel_diameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 563)
+Returns the effective vessel diameter, which is the anatomical 
+diameter minus twice the effective width of the endothelial surface 
+layer (which depends on the discharge hematocrit), according to the 
+empirical model of Pries and Secomb in their 2005 paper &#8216;Microvascular 
+blood viscosity in vivo and the endothelial surface layer&#8217;.
+INPUT: diameter: Anatomical diameter of the blood vessel.</p>
+<blockquote>
+<div>htd: Discharge hematocrit.</div></blockquote>
+<p>OUTPUT: weff: Effective width of the ESL (dependent on the hematocrit).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.fahraeus_effect">
+<tt class="descname">fahraeus_effect</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.fahraeus_effect" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 626)
+Returns the fraction of tube hematocrit by discharge hematocrit 
+either in vivo or in vitro. This is an empirical relation, published by 
+Pries et al. in 1990 &#8216;Blood flow in microvascular networks - 
+experiments and simulation&#8217;. The extension to in-vivo was presented in
+a 2005 paper &#8216;Microvascular blood viscosity in vivo and the endothelial
+surface layer&#8217;.
+INPUT: diameter: Diameter of the blood vessel.</p>
+<blockquote>
+<div><p>htd: Discharge hematocrit.
+invivo: This boolean determines whether to compute the in vivo</p>
+<blockquote>
+<div>effect (the default) or in vitro.</div></blockquote>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: Fraction of tube by discharge hematocrit.</dt>
+<dd>Note that this is the &#8216;rat blood&#8217; version of the formula. The
+diameter dependent exponents have been scaled with the cube
+root of the mean red blood cell volume (rat 55fl, human 92fl).</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.intra_cranial_pressure">
+<tt class="descname">intra_cranial_pressure</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.intra_cranial_pressure" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 715)
+The intra-cranial pressure as reported by Albeck et al. 1991, 
+Alperin et al. 2000 is 10 mmHg.
+INPUT: None
+OUTPUT: intra-cranial pressure scaled to default units.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.phase_separation_effect">
+<tt class="descname">phase_separation_effect</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.phase_separation_effect" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 581)
+Returns the fraction of red blood cells entering a daughter branch, 
+based on the fractional blood flow into that branch. This is an 
+empirical relation, published by Pries et al. in 1990 &#8216;Blood flow in 
+microvascular networks - experiments and simulation&#8217;. Note that it only
+applies to a bifurcation of coordination number 3 (that is one mother 
+and two daughter branches)!
+INPUT: fqb: Fractional blood flow into the daughter branch.</p>
+<blockquote>
+<div>da: Diameter of daughter branch.
+db: Diameter of other daughter branch.
+df: Diameter of mother vessel.
+htd: Discharge hematocrit of the mother vessel.</div></blockquote>
+<p>OUTPUT: fqe: Fractional red blood cell flow in the daughter vessel.
+WARNING: The minimum diameter of the parent vessel is artificially</p>
+<blockquote>
+<div>constrained to 1.4 micron. Moreover, the argument of the logit
+function is restricted to the interval [0,1].</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.physical_esl_thickness">
+<tt class="descname">physical_esl_thickness</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.physical_esl_thickness" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 464)
+Returns the physical width of the endothelial surface layer (which 
+is independent of hematocrit), according to the empirical model of 
+Pries and Secomb in their 2005 paper &#8216;Microvascular blood viscosity in 
+vivo and the endothelial surface layer&#8217;.
+INPUT: diameter: Anatomical diameter of the blood vessel.
+OUTPUT: Physical width of the ESL.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.physical_vessel_diameter">
+<tt class="descname">physical_vessel_diameter</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.physical_vessel_diameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 546)
+Returns the physical vessel diameter, which is the anatomical 
+diameter minus twice the physical width of the endothelial surface 
+layer (which is hematocrit independent), according to the empirical 
+model of Pries and Secomb in their 2005 paper &#8216;Microvascular blood 
+viscosity in vivo and the endothelial surface layer&#8217;.
+INPUT: diameter: Anatomical diameter of the blood vessel.
+OUTPUT: weff: Effective width of the ESL (dependent on the hematocrit).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.rbc_volume">
+<tt class="descname">rbc_volume</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.rbc_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 819)
+Returns the volume of a red blood cell (RBC)
+INPUT: None.
+OUTPUT: The volume of an RBC.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.relative_apparent_blood_viscosity">
+<tt class="descname">relative_apparent_blood_viscosity</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.relative_apparent_blood_viscosity" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 336)
+Returns the relative apparent blood-viscosity value, according to 
+the given vessel specifications and discharge hematocrit.</p>
+<p>&#8216;Apparent&#8217;, because the viscosity of blood as a suspension is not an
+intrinsic fluid property, but depends on the vessel size.
+&#8216;Relative&#8217;, because the viscosity is scaled to (divided by) the 
+viscosity of the solvent, i.e. the viscosity of blood plasma (as such, 
+it should also be independent of temperature, Barbee 1973).
+Fit function taken from Pries 1992 (Blood viscosity in tube flow: 
+dependence on diameter and hematocrit). It is assumed that the relative 
+apparent viscosity is a fraction of dynamic (as opposed to kinematic) 
+viscosities, although this is not stated explicitly in the paper. The 
+error would be small if this is not the case, because the densities of 
+plasma and RBCs do not differ significantly (&lt;10%).
+INPUT: diameter: Vessel diameter.</p>
+<blockquote>
+<div><p>discharge_hematocrit: Discharge Ht expressed as a fraction [0,1]
+invivo: This boolean determines whether to compute in vivo</p>
+<blockquote>
+<div>viscosity (the default) or in vitro.</div></blockquote>
+</div></blockquote>
+<p>OUTPUT: Relative apparent blood viscosity [1.0]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.tube_hematocrit">
+<tt class="descname">tube_hematocrit</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.tube_hematocrit" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 182)
+Returns the tube or vessel-hematocrit value, according to the given
+vessel specifications.</p>
+<p>Data from Lipowsky 1980 (In Vivo Measurements of &#8216;Apparent Viscosity&#8217; 
+and Microvessel Hematocrit in the Mesentery of the Cat) have been 
+fitted using Matlab&#8217;s cftool. Values backed by data in diameter range 
+[7,70] microns.     
+INPUT: diameter: Vessel diameter</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>kind: Type of blood vessel. This may be either &#8216;a&#8217; or &#8216;v&#8217; for </dt>
+<dd>&#8216;artery&#8217; or &#8216;vein&#8217; respectively.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: Hematocrit [fraction ([0,1])]
+WARNING: This function only produces reliable results for diameters</p>
+<blockquote>
+<div>between 7 and 70 micron!</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.tube_to_discharge_hematocrit">
+<tt class="descname">tube_to_discharge_hematocrit</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.tube_to_discharge_hematocrit" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 267)
+Converts tube hematocrit to discharge hematocrit based on the
+formula provided by Pries and Neuhaus 1992.
+Note that this is the &#8216;rat blood&#8217; version of the formula. The
+diameter dependent exponents have been scaled with the cube
+root of the mean red blood cell volume (rat 55fl, human 92fl).
+The extension to in-vivo was presented in a 2005 paper &#8216;Microvascular
+blood viscosity in vivo and the endothelial surface layer&#8217;.
+INPUT: tube_ht: Tube Ht expressed as a fraction [0,1]</p>
+<blockquote>
+<div>d: Diameter of the vessel.          
+invivo: Boolean, whether or not to consider ESL influence.</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: discharge_hematocrit: Discharge Ht expressed as a fraction </dt>
+<dd>[0,1]</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.tune_to_default_units">
+<tt class="descname">tune_to_default_units</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.tune_to_default_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 46)
+Tunes the Physiology object to a set of default units. This results
+in faster execution time and less calling parameters.
+INPUT: defaultUnits: The default units to be used for input and output</p>
+<blockquote>
+<div>as a dictionary, e.g.: {&#8216;length&#8217;: &#8216;m&#8217;, 
+&#8216;mass&#8217;: &#8216;kg&#8217;, &#8216;time&#8217;: &#8216;s&#8217;}</div></blockquote>
+<p>OUTPUT: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.physiology.Physiology.velocity_factor">
+<tt class="descname">velocity_factor</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.physiology.Physiology.velocity_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>File: physiology.pyx (starting at line 857)
+Returns the factor by which red blood cells (RBCs) are faster than
+the mean velocity.
+Hd = V Ht v F / (V v)  &lt;==&gt; F = Hd / Ht
+This function makes use of the empirical data provided / compiled by
+Pries and coworkers.
+INPUT: diameter: The diameter of the containing vessel.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>kind: Type of blood vessel. This may be either &#8216;a&#8217; or &#8216;v&#8217; for </dt>
+<dd>&#8216;artery&#8217; or &#8216;vein&#8217; respectively.</dd>
+</dl>
+<p>invivo: Boolean, whether or not to consider ESL influence.
+tube_ht: Tube hematocrit. Empirical value taken if not provided.
+discharge_ht: Discharge hematocrit. Empirical value take if not</p>
+<blockquote>
+<div>provided.</div></blockquote>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: The factor by which the RBC speed exceeds the mean blood</dt>
+<dd>velocity.</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.units">
+<span id="units-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">units</span></tt> Module<a class="headerlink" href="#module-vgm.core.units" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vgm.core.units.scaling_factor">
+<tt class="descclassname">vgm.core.units.</tt><tt class="descname">scaling_factor</tt><big>(</big><em>Q_rescale</em>, <em>Q_compare</em><big>)</big><a class="headerlink" href="#vgm.core.units.scaling_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the scaling factor to multiply a quantity with, if it is to be
+expressed in units of another quantity.
+INPUT: Q_rescale: The quantity instance or unit-string that is to be</p>
+<blockquote>
+<div>rescaled.
+Q_compare: The quantity instance or unit-string whose units are 
+desired.</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: Factor by which Q_rescale is to be multiplied with, if expressed in</dt>
+<dd>units of Q_compare</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.units.scaling_factor_du">
+<tt class="descclassname">vgm.core.units.</tt><tt class="descname">scaling_factor_du</tt><big>(</big><em>Q_rescale</em>, <em>defaultUnits</em><big>)</big><a class="headerlink" href="#vgm.core.units.scaling_factor_du" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the scaling factor to multiply a quantity with, if it is to be
+expressed in the default units provided.
+INPUT: Q_rescale: The quantity instance or unit-string that is to be</p>
+<blockquote>
+<div><p>rescaled.
+defaultUnits: The default units as dictionary, e.g.: {&#8216;length&#8217;: &#8216;m&#8217;,</p>
+<blockquote>
+<div>&#8216;mass&#8217;: &#8216;kg&#8217;, &#8216;time&#8217;: &#8216;s&#8217;}</div></blockquote>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: Factor by which Q_rescale is to be multiplied with, if expressed in</dt>
+<dd>the default units.</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.upscaling">
+<span id="upscaling-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">upscaling</span></tt> Module<a class="headerlink" href="#module-vgm.core.upscaling" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="vgm.core.upscaling.fuzzy_block_subgraph">
+<tt class="descclassname">vgm.core.upscaling.</tt><tt class="descname">fuzzy_block_subgraph</tt><big>(</big><em>G</em>, <em>sideLengths</em>, <em>origin</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.upscaling.fuzzy_block_subgraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts a cuboid subgraph from the input graph. This also includes the
+neighboring nodes that connect to nodes inside the cuboid, hence the name
+fuzzy-block.
+INPUT: G: Vascular graph in iGraph format.</p>
+<blockquote>
+<div><p>sideLengths: Dimensions of the block (cuboid) as a tuple/list.
+origin: The minimum x,y,z of the cuboid as tuple/list.
+<a href="#id26"><span class="problematic" id="id27">**</span></a>kwargs:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>dRange: Range of diameters to be included (edges with diameters</dt>
+<dd>outside of this range are neglected). Provide as a 
+tuple/list, i.e. [minDiameter, maxDiameter].</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: sg: Fuzzy-block subgraph. Additional vertex properties are added,</dt>
+<dd>namely offsets in x, y, and z direction compared to the cuboid.
+I.e. xoffset can take the values -1, 0, 1 corresponding to 
+positions in x-direction smaller than, equal to, or larger than
+the cuboid x-dimensions. Analogous for yoffset, and zoffset.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgm.core.upscaling.fuzzy_block_conductance">
+<tt class="descclassname">vgm.core.upscaling.</tt><tt class="descname">fuzzy_block_conductance</tt><big>(</big><em>sg</em>, <em>off1</em>, <em>off2</em><big>)</big><a class="headerlink" href="#vgm.core.upscaling.fuzzy_block_conductance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the effective conductance of the fuzzy-block in the direction
+off1-off2.
+INPUT: sg: Fuzzy-block subgraph in iGraph format (see fuzzy_block_subgraph).</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>off1: First offset as a tuple / list , e.g. (-1,0,0) which would be </dt>
+<dd>the neighboring block in -x direction.</dd>
+</dl>
+<p>off2: Second offset.</p>
+</div></blockquote>
+<p>OUTPUT: Effective conductance in off1-off2 direction</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-vgm.core.vascularGraph">
+<span id="vasculargraph-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">vascularGraph</span></tt> Module<a class="headerlink" href="#module-vgm.core.vascularGraph" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="vgm.core.vascularGraph.VascularGraph">
+<em class="property">class </em><tt class="descclassname">vgm.core.vascularGraph.</tt><tt class="descname">VascularGraph</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">igraph.Graph</span></tt></p>
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.add_diffusion_factor">
+<tt class="descname">add_diffusion_factor</tt><big>(</big><em>substance</em>, <em>value=0.0</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.add_diffusion_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a uniform diffusion factor to the VascularGraph. The diffusion
+factor describes the diffusive flux of substances within the 
+VascularGraph. It is an edge property and depends on the substance. 
+Therefore, it is possible to assign individual diffusion factors 
+for different substances. Note that this diffusion factor is 
+defined differently from the diffusion coefficient of the literature: 
+its dimensions are [1 / time], as opposed to [length^2 / time]. The 
+advantage of this formulation is that the diffusion factor can be
+defined even for upscaled edges that have no straight-forward 
+cross-sectional surface area. 
+INPUT: substance: The name of the substance as string.</p>
+<blockquote>
+<div>value: The value of the exchange coefficient.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.add_exchange_coefficient">
+<tt class="descname">add_exchange_coefficient</tt><big>(</big><em>substance</em>, <em>value=0.0</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.add_exchange_coefficient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a uniform exchange coefficient to the VascularGraph. The 
+exchange coefficient describes the transfer of substances between the 
+vasculature and the tissue. It is an edge property and depends on the 
+substance. Therefore, it is possible to assign individual exchange 
+coefficients for different substances. Upscaled vertices store an 
+effective upscaled exchange coefficient for its unresolved associated 
+upscaled edges.   
+INPUT: substance: The name of the substance as string.</p>
+<blockquote>
+<div>value: The value of the exchange coefficient.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.add_points">
+<tt class="descname">add_points</tt><big>(</big><em>spacing</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.add_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds intermediate points between vertices as edge-property.
+Diameters and lengths are added as well.
+INPUT: spacing: The space between points.
+OUTPUT: None, edge property &#8216;points&#8217;, &#8216;diameters&#8217;, and &#8216;lengths&#8217; are</p>
+<blockquote>
+<div>added.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.add_sBCs">
+<tt class="descname">add_sBCs</tt><big>(</big><em>substance</em>, <em>vertices</em>, <em>concentrations</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.add_sBCs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds substance boundary conditions to the vascular graph.
+INPUT: substance: The name of the substance as string.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>vertices: The indices of the vertices for which the substance</dt>
+<dd>boundary conditions are to be set.</dd>
+<dt>concentrations: vector of boundary concentrations for the </dt>
+<dd>respective vertices (values required in the 
+range [0,1]).</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: none, the instance is modified in place.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.add_substance">
+<tt class="descname">add_substance</tt><big>(</big><em>substance</em>, <em>concentration=0.0</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.add_substance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a substance to the vascular graph. This is a scalar property.
+INPUT: substance: The name of the substance as string.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>concentration: The initial concentration to be set at all </dt>
+<dd>vertices. The concentration is a volume fraction 
+and hence a dimensionless number between 0 and 1.
+(Optional parameter, default is 0.)</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: none, the instance is modified in place.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.central_dilation">
+<tt class="descname">central_dilation</tt><big>(</big><em>eid</em>, <em>factor</em>, <em>cf</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.central_dilation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits an edge into a central and two distal parts. The central part
+of the edge is dilated by a given factor.
+INPUT: eid: Index of the edge that is to be dilated.</p>
+<blockquote>
+<div>factor: Multiplicative factor of dilation.
+cf: Center fraction. E.g. cf=2/3 would split the edge into 1/6,
+4/6, 1/6.</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: Vertex and edge indices are returned as a tuple and triple</dt>
+<dd>respectively.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.closest_edge">
+<tt class="descname">closest_edge</tt><big>(</big><em>coordinate</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.closest_edge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the edge of the VascularGraph closest to a given coordinate
+and returns its index, as well as the distance between coordinate and
+nearest edge point.
+If coordinate is a list of coordinates, the search is performed for
+each coordinate triple.
+INPUT: coordinate: The (x,y,z) search coordinate. This can also be a</p>
+<blockquote>
+<div>list of coordinate triples.</div></blockquote>
+<p>OUTPUT: The index of the edge closest to the given coordinate.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.closest_vertex">
+<tt class="descname">closest_vertex</tt><big>(</big><em>coordinate</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.closest_vertex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the vertex of the VascularGraph closest to a given coordinate
+and returns its index, as well as the distance between coordinate and
+nearest vertex.
+If coordinate is a list of coordinates, the search is performed for
+each coordinate triple.        
+INPUT: coordinate: The (x,y,z) search coordinate. This can also be a</p>
+<blockquote>
+<div>list of coordinate triples.</div></blockquote>
+<p>OUTPUT: The index of the vertex closest to the given coordinate.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.copy_edge_attributes">
+<tt class="descname">copy_edge_attributes</tt><big>(</big><em>source</em>, <em>target</em>, <em>G=None</em>, <em>assertPoints=True</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.copy_edge_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copies the attributes of edge source to edge target. Source and
+target can be a list of edges, in which case the n-th source is copied 
+to the n-th target for n=0..len(source)-1.
+INPUT: source: The index of the source edge</p>
+<blockquote>
+<div><p>target: The index of the target edge
+G: The VascularGraph to which the source edge belongs. If not</p>
+<blockquote>
+<div>provided, it is assumed it belongs to the current instance.</div></blockquote>
+<dl class="docutils">
+<dt>assertPoints: Whether to check the integrety of the attribute</dt>
+<dd>&#8216;points&#8217;. Amira expects to find the first and last
+point of an edge to be identical to the edge
+source and target respectively, with source_index 
+&lt; target_index.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.copy_graph_attributes">
+<tt class="descname">copy_graph_attributes</tt><big>(</big><em>sourceGraph</em>, <em>mode='add'</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.copy_graph_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the properties of the sourceGraph to the current VascularGraph.
+INPUT: sourceGraph: VascularGraph whose attributes are to be copied.</p>
+<blockquote>
+<div>mode: The copy-mode, this can be either &#8216;add&#8217; or &#8216;overwrite&#8217;</div></blockquote>
+<p>OUTPUT: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.copy_vertex_attributes">
+<tt class="descname">copy_vertex_attributes</tt><big>(</big><em>source</em>, <em>target</em>, <em>G=None</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.copy_vertex_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copies the attributes of vertex source to vertex target. Source and
+target can be a list of vertices, in which case the n-th source is 
+copied to the n-th target for n=0..len(source)-1.
+INPUT: source: The index of the source vertex</p>
+<blockquote>
+<div><p>target: The index of the target vertex
+G: The VascularGraph to which the source vertex belongs. If not</p>
+<blockquote>
+<div>provided, it is assumed it belongs to the current instance.</div></blockquote>
+</div></blockquote>
+<p>OUTPUT: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.cross_sectional_area_and_length">
+<tt class="descname">cross_sectional_area_and_length</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.cross_sectional_area_and_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the approximate cross-sectional area and length of the 
+vascular graph.
+INPUT: <a href="#id28"><span class="problematic" id="id29">**</span></a>kwargs</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>shape: The shape of the vascular graph. This may be either </dt>
+<dd>&#8216;cuboid&#8217; or &#8216;cylinder&#8217;. If not provided, the shape is 
+determined from the data.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: The cross-sectional area and length of the vascular graph.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.delete_order_two_vertices">
+<tt class="descname">delete_order_two_vertices</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.delete_order_two_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Joins all edges adjacent to order two vertices in the VascularGraph.
+INPUT: <a href="#id30"><span class="problematic" id="id31">**</span></a>kwargs</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>whitelist: A list of order two vertices that should be deleted</dt>
+<dd>(others, if they exist, are kept).</dd>
+<dt>blacklist: A list of order two vertices that should be kept, all</dt>
+<dd>others are deleted.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.delete_selfloops">
+<tt class="descname">delete_selfloops</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.delete_selfloops" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all selfloops from the VascularGraph.
+INPUT: None
+OUTPUT: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.dimension_extrema">
+<tt class="descname">dimension_extrema</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.dimension_extrema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the minimum and maximum x,y,z values of the points making
+up the graph, as well as the corresponding lengths.
+INPUT: None (except self).
+OUTPUT: minima, maxima, lengths as numpy arrays.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.disjoint_union_attribute_preserving">
+<tt class="descname">disjoint_union_attribute_preserving</tt><big>(</big><em>other</em>, <em>gaCopyMode</em>, <em>assertPoints=True</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.disjoint_union_attribute_preserving" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a disjoint union of two VascularGraphs while preserving 
+vertex and edge attributes.
+INPUT: other: The VascularGraph to be added to the instance.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>gaCopyMode: The mode with which graph attributes are copied from</dt>
+<dd>other to self. This can be either &#8216;omit&#8217;, &#8216;add&#8217; or 
+&#8216;overwrite&#8217;.</dd>
+<dt>assertPoints: Whether to check the integrety of the attribute</dt>
+<dd>&#8216;points&#8217;. Amira expects to find the first and last
+point of an edge to be identical to the edge
+source and target respectively, with source_index 
+&lt; target_index.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: None, the VascularGraph is modified in-place.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.get_backbone">
+<tt class="descname">get_backbone</tt><big>(</big><em>bbVertices=None</em>, <em>mode='edges'</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.get_backbone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iteratively removes hanging nodes until the (fluid-dynamically 
+functional) backbone is left.
+INPUT: bbVertices: Vertices that are part of the backbone. If none are</p>
+<blockquote>
+<div><blockquote>
+<div>provided, the routine looks for pressure boundary 
+nodes in terms of the graph attributes &#8216;av&#8217; and 
+&#8216;vv&#8217;. If these are not available either, the 
+original graph is returned.</div></blockquote>
+<dl class="docutils">
+<dt>mode: This may be either &#8216;edges&#8217; or &#8216;components&#8217;, signifying the</dt>
+<dd>degree to which pruning takes place. The default mode
+&#8216;edges&#8217; removes all edges not belonging to the backbone,
+whereas the mode &#8216;components&#8217; simply removes all non-
+backbone components (which is coarser).</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: Backbone of the vascular network in VascularGraph format.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.get_capillary_vertices">
+<tt class="descname">get_capillary_vertices</tt><big>(</big><em>dThreshold=None</em>, <em>mode='all'</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.get_capillary_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the tupel of vertex indices associated to each of the given
+edge indices.
+INPUT: dThreshold: The diameter threshold that separates capillaries</p>
+<blockquote>
+<div><blockquote>
+<div>from non-capillaries. If no value is supplied, 
+8 microns is used as the default.</div></blockquote>
+<dl class="docutils">
+<dt>mode: The search-mode to qualify a vertex as a capillary vertex.</dt>
+<dd>If set to &#8216;all&#8217;, all adjacent edges need to be 
+capillaries. If set to &#8216;some&#8217;, one or more edges suffice.</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: Edge indices either as list of tuples, or as a flattened list</dt>
+<dd>of unique entries.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.get_concentration">
+<tt class="descname">get_concentration</tt><big>(</big><em>substance</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.get_concentration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a copy of the substance concentration as a list.
+INPUT: substance: The name of the substance as string.
+OUTPUT: c: The substance concentration at the vertices as list.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.get_edge_vertices">
+<tt class="descname">get_edge_vertices</tt><big>(</big><em>edgeIndices</em>, <em>flatten=True</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.get_edge_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the tupel of vertex indices associated to each of the given
+edge indices.
+INPUT: edgeIndices: The indices of the edges of interest.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>flatten: Boolean indicating whether or not the returned list is </dt>
+<dd>to be flattened (the flattened list will also only 
+contain unique entries).</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: Vertex indices either as list of tuples, or as a flattened list</dt>
+<dd>of unique entries.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.get_endpoints">
+<tt class="descname">get_endpoints</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.get_endpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds all endpoints in the graph, i.e. those vertices that connect
+to exactly one other vertex.
+INPUT: None (except self)
+OUTPUT: Indices of the endpoint vertices.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.get_isolated_edges">
+<tt class="descname">get_isolated_edges</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.get_isolated_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the indices of the isolated edges in the graph.
+INPUT: None (except self)
+OUTPUT: Indices of the isolated edges.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.get_tree_subcomponent">
+<tt class="descname">get_tree_subcomponent</tt><big>(</big><em>startingVertex</em>, <em>dThreshold</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.get_tree_subcomponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the indices of vertices that make up a vascular tree, given
+the index of a vertex, which is part of that tree. The search stops at
+edges which have a diameter below a certain threshold value. This is 
+typically used to exclude the capillaries, so that a purely arterial or
+venous tree is extracted.
+INPUT: startingVertex: The index of the vertex at which the search is</p>
+<blockquote>
+<div><blockquote>
+<div>started.</div></blockquote>
+<dl class="docutils">
+<dt>dThreshold: The diameter threshold below or equal to which edges </dt>
+<dd>are to be ignored.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: The indices of the vertices that make up the vascular tree.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.get_tree_subgraph">
+<tt class="descname">get_tree_subgraph</tt><big>(</big><em>startingVertex</em>, <em>dC</em>, <em>dNC=None</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.get_tree_subgraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts a vascular tree given the starting vertex of that tree. The
+search stops at edges which have a diameter below a certain threshold 
+value. This is typically used to exclude the capillaries, so that a 
+purely arterial or venous tree is extracted. If the tree has pre-
+capillary connections to other trees, these trees can be excluded by 
+providing a suitable value for the dNC parameter.
+INPUT: startingVertex: The index of the vertex at which the search is</p>
+<blockquote>
+<div><blockquote>
+<div>started.</div></blockquote>
+<dl class="docutils">
+<dt>dC: The diameter threshold below or equal to which edges are to </dt>
+<dd>be ignored.</dd>
+<dt>dNC: The diameter above which ending-edges with vertices not </dt>
+<dd>including the starting vertex are considered as the 
+starting edge of a different, individual tree. The default
+value is none, in which case no search for other trees is
+performed.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: The vascular tree in VascularGraph format.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.get_unconnected_vertices">
+<tt class="descname">get_unconnected_vertices</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.get_unconnected_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the indices of the unconnected vertices in the graph.
+INPUT: None (except self)
+OUTPUT: Indices of the unconnected vertices.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.get_vertex_edges">
+<tt class="descname">get_vertex_edges</tt><big>(</big><em>vertexIndices</em>, <em>type='all'</em>, <em>flatten=True</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.get_vertex_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the indices of the adjacent edges associated to each of the 
+given vertex indices.
+INPUT: vertexIndices: The indices of the vertices of interest.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>type: Whether to return only edges to predecessors (&#8216;in&#8217;), </dt>
+<dd>successors (&#8216;out&#8217;) or both (&#8216;all&#8217;).</dd>
+<dt>flatten: Boolean indicating whether or not the returned list is </dt>
+<dd>to be flattened (the flattened list will also only 
+contain unique entries).</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: Edge indices either as list of tuples, or as a flattened list</dt>
+<dd>of unique entries.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.join_edges">
+<tt class="descname">join_edges</tt><big>(</big><em>orderTwoVertex</em>, <em>assertOrder=True</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.join_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Joins edges adjacent to an order two vertex.
+Note that this code is designed to work for VascularGraphs imported 
+from AmiraMesh files (i.e. &#8216;diameter&#8217;, &#8216;diameters&#8217;, &#8216;length&#8217;, &#8216;lengths&#8217;, 
+and &#8216;points&#8217; are the only edge properties expected).
+INPUT: orderTwoVertex: The index of the order two vertex.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>assertOrder: Boolean determining whether to assert that the</dt>
+<dd>vertex in question is indeed of order 2.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.length_density">
+<tt class="descname">length_density</tt><big>(</big><em>dThreshold=7.0</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.length_density" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the length density of a sample - capillaries, 
+non-capillaries and combined. Either for the entire sample or a given 
+z-fraction of it. Published values in the macaque visual cortex with 
+dThreshold = 8.0 micron outer diameter(Weber 2008), approx. 7.0 micron
+inner diameter are
+capillaries: [300, 400] mm/mm^3
+non-capillaries: [100,150] mm/mm^3 
+INPUT: dThreshold: (Inner) diameter threshold below which vessels are</p>
+<blockquote>
+<div><blockquote>
+<div>considered as capillaries (optional, default is 7.0)</div></blockquote>
+<dl class="docutils">
+<dt><a href="#id32"><span class="problematic" id="id33">**</span></a>kwargs:   </dt>
+<dd><dl class="first last docutils">
+<dt>shape: The shape of the vascular graph. This may be either </dt>
+<dd>&#8216;cuboid&#8217; or &#8216;cylinder&#8217;. If not provided, the shape is 
+determined from the data.</dd>
+<dt>zRange: Range of zValues in which to consider the edges of the</dt>
+<dd>graph (as list e.g. [0,1000]). If not supplied, all 
+edges are considered.</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>OUTPUT: Capillary length-density, non-capillary length-density, total</dt>
+<dd>length-density.</dd>
+<dt>WARNING: This function assumes that the vascular graph is either</dt>
+<dd>cylindrical with rotational axis in z-direction or cuboid.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.neighbors2">
+<tt class="descname">neighbors2</tt><big>(</big><em>vertex</em>, <em>mode='all'</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.neighbors2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the neighbors of a vertex. This method takes care that the
+order of the neighbors returned matches the order of the corresponding
+edges, as provided by the adjacent method.
+INPUT: vertex: The vertex index.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>mode: This can be &#8216;all&#8217; (default), &#8216;in&#8217;, &#8216;out&#8217; - ignored for </dt>
+<dd>undirected graphs.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: Neighboring vertices.
+WARNING: This method is much slower than &#8216;neighbors()&#8217;, especially for</p>
+<blockquote>
+<div>large graphs!</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.radius_and_center">
+<tt class="descname">radius_and_center</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.radius_and_center" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the approximate radius and center of the circular cross-
+section of a cylindrical graph (the rotational axis is assumed to lie 
+in z-direction).
+INPUT: None (except self).
+OUTPUT: radius: The approximate radius of the circular cross-section.</p>
+<blockquote>
+<div>center: The approximate center of the circular cross-section.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.set_concentration">
+<tt class="descname">set_concentration</tt><big>(</big><em>substance</em>, <em>c</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.set_concentration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the substance concentration at the graph vertices.
+INPUT: substance: The name of the substance as string.
+c: The substance concentration at the vertices as list.
+OUTPUT: none, the instance is modified in place.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.shape">
+<tt class="descname">shape</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines the shape of a vascular graph (this may be either 
+&#8216;cylinder&#8217; or &#8216;cuboid&#8217;). This is done on the basis of determining 
+whether the lower left corner of the vascular graph, looked at in 
+z-direction, is devoid of points. If so, it is cylindrical.
+INPUT: None (except self)
+OUTPUT: Either &#8216;cylinder&#8217; or &#8216;cuboid&#8217; as string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.split_edge">
+<tt class="descname">split_edge</tt><big>(</big><em>eIndex</em>, <em>pIndex</em>, <em>deleteOldEdge=True</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.split_edge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits an edge in two by introducing an additional vertex.
+Note that this code is designed to work for VascularGraphs imported 
+from AmiraMesh files.
+INPUT: eIndex: The index of the edge to be split.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>pIndex: The index of the edge-point which will become the new </dt>
+<dd>vertex.</dd>
+<dt>deleteOldEdge: Boolean that defines whether or not to delete the</dt>
+<dd>old edge after it has been split into two new 
+ones, default is &#8216;True&#8217;. 
+If splitting multiple edges, it may be useful not
+to delete the old edge as this changes the edge
+indices of all edges &gt; eIndex. One would delete
+all old edges in one go after each one has been 
+split instead.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.to_directed_flow_based">
+<tt class="descname">to_directed_flow_based</tt><big>(</big><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.to_directed_flow_based" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts an undirected vascular graph to a directed graph. The 
+direction of the edges corresponds to the direction of flow (i.e. from 
+higher to lower pressure.
+Note that this method does not change the order of the edges, i.e. edge
+indices are preserved!
+INPUT: None (except self)
+OUTPUT: None - the graph is modified in place
+WARNING: Eventhogh the order of the edges is preserved, &#8216;adjacent()&#8217;</p>
+<blockquote>
+<div>will return a different order.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.total_volume">
+<tt class="descname">total_volume</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.total_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the approximate total volume of the vascular graph (i.e. 
+the combined volumina of tissue and vasculature).
+INPUT: <a href="#id34"><span class="problematic" id="id35">**</span></a>kwargs</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>shape: The shape of the vascular graph. This may be either </dt>
+<dd>&#8216;cuboid&#8217; or &#8216;cylinder&#8217;. If not provided, the shape is 
+determined from the data.</dd>
+</dl>
+<p>zRange: The range of cortical depths to consider (as list).</p>
+</div></blockquote>
+<p>OUTPUT: The total volume of the vascular graph.
+WARNING: zRange is not tested for consistency (i.e. values that lie</p>
+<blockquote>
+<div>outside of the actual domain are quietly accepted).</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.union_attribute_preserving">
+<tt class="descname">union_attribute_preserving</tt><big>(</big><em>other</em>, <em>gaCopyMode='add'</em>, <em>assertPoints=True</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.union_attribute_preserving" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a union of two VascularGraphs while preserving vertex and 
+edge attributes. Vertices that have identical coordinates (property 
+&#8216;r&#8217;) are considered to be the same vertex.
+INPUT: other: The VascularGraph to be added to the instance.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>gaCopyMode: The mode with which graph attributes are copied from</dt>
+<dd>other to self. This can be either &#8216;omit&#8217;, &#8216;add&#8217; or 
+&#8216;overwrite&#8217;.</dd>
+<dt>assertPoints: Whether to check the integrety of the attribute</dt>
+<dd>&#8216;points&#8217;. Amira expects to find the first and last
+point of an edge to be identical to the edge
+source and target respectively, with source_index 
+&lt; target_index.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: None, the VascularGraph is modified in-place.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.vascular_volume">
+<tt class="descname">vascular_volume</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.vascular_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the vascular volume of the vascular graph. This makes use 
+of the vessel volume property, if defined, otherwise it is computed 
+using the vessel length and mean diameter. (Note that the latter may 
+be either exact or approximate, depending on how the mean diameter is
+defined).
+Note that this is typically using the <em>inner</em> diameter of the vessels.
+INPUT: <a href="#id36"><span class="problematic" id="id37">**</span></a>kwargs</p>
+<blockquote>
+<div><p>zRange: The range of cortical depths to consider (as list).
+wallThickness: The thickness of the vessel wall to be added</p>
+<blockquote>
+<div>to the inner diameter (assumed equal for all
+vessels). This parameter is only taken into 
+account when the edge property &#8216;volume&#8217; is not
+defined.</div></blockquote>
+</div></blockquote>
+<p>OUTPUT: The vascular volume of the vascular graph.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.vascular_volume_fraction">
+<tt class="descname">vascular_volume_fraction</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.vascular_volume_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the approximate vascular volume fraction of the vascular 
+graph.
+Note that this is typically using the <em>inner</em> diameter of the vessels.
+INPUT: <a href="#id38"><span class="problematic" id="id39">**</span></a>kwargs</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>shape: The shape of the vascular graph. This may be either </dt>
+<dd>&#8216;cuboid&#8217; or &#8216;cylinder&#8217;. If not provided, the shape is 
+determined from the data.</dd>
+</dl>
+<p>zRange: The range of cortical depths to consider (as list).       
+wallThickness: The thickness of the vessel wall to be added</p>
+<blockquote>
+<div>to the inner diameter (assumed equal for all
+vessels). This parameter is only taken into 
+account when the edge property &#8216;volume&#8217; is not
+defined.</div></blockquote>
+</div></blockquote>
+<p>OUTPUT: The approximate vascular volume fraction of the vascular graph.
+WARNING: zRange is not tested for consistency (i.e. values that lie</p>
+<blockquote>
+<div>outside of the actual domain are quietly accepted).</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.vertex_volume">
+<tt class="descname">vertex_volume</tt><big>(</big><em>vertices=None</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.vertex_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the volume associated with graph vertices from the volumes
+of their respective adjacent edges. If a vertex is an upscaled vertex,
+also its upscaled volume is considered.
+INPUT: vertices: List of vertices for which to compute the volume. If</p>
+<blockquote>
+<div>not provided, all vertices are considered.</div></blockquote>
+<p>OUTPUT: List of vertex volumes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="vgm.core.vascularGraph.VascularGraph.vertices_away_from_border">
+<tt class="descname">vertices_away_from_border</tt><big>(</big><em>distance</em>, <em>shape=None</em><big>)</big><a class="headerlink" href="#vgm.core.vascularGraph.VascularGraph.vertices_away_from_border" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the vertex indices of those vertices that are a given 
+distance away from the border of the VascularGraph.
+INPUT: distance: The desired distance from the border.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>shape: The shape of the VascularGraph domain (e.g. cylindrical).</dt>
+<dd>If not provided, attempts will be made to determine it.</dd>
+</dl>
+</div></blockquote>
+<p>OUTPUT: The indices of the &#8216;inside vertices&#8217; as a list.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">core Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">core</span></tt> Package</a></li>
+<li><a class="reference internal" href="#advection-module"><tt class="docutils literal"><span class="pre">advection</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.boundary_conditions"><tt class="docutils literal"><span class="pre">boundary_conditions</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.connector"><tt class="docutils literal"><span class="pre">connector</span></tt> Module</a></li>
+<li><a class="reference internal" href="#diffusion-module"><tt class="docutils literal"><span class="pre">diffusion</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.exchange"><tt class="docutils literal"><span class="pre">exchange</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.g_input"><tt class="docutils literal"><span class="pre">g_input</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.g_math"><tt class="docutils literal"><span class="pre">g_math</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.g_output"><tt class="docutils literal"><span class="pre">g_output</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.guiTools"><tt class="docutils literal"><span class="pre">guiTools</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.linearSystem"><tt class="docutils literal"><span class="pre">linearSystem</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.linearSystem_dynamic"><tt class="docutils literal"><span class="pre">linearSystem_dynamic</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.linearSystem_htd"><tt class="docutils literal"><span class="pre">linearSystem_htd</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.linearSystem_pries"><tt class="docutils literal"><span class="pre">linearSystem_pries</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.misc"><tt class="docutils literal"><span class="pre">misc</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.paths"><tt class="docutils literal"><span class="pre">paths</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.physiology"><tt class="docutils literal"><span class="pre">physiology</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.units"><tt class="docutils literal"><span class="pre">units</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.upscaling"><tt class="docutils literal"><span class="pre">upscaling</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-vgm.core.vascularGraph"><tt class="docutils literal"><span class="pre">vascularGraph</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="vgm.html"
+                        title="previous chapter">vgm Package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="vgm.preprocessing.html"
+                        title="next chapter">preprocessing Package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/vgm.core.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="vgm.preprocessing.html" title="preprocessing Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vgm.html" title="vgm Package"
+             >previous</a> |</li>
+        <li><a href="index.html">Vascular Graph Model 1.0 documentation</a> &raquo;</li>
+          <li><a href="vgm.html" >vgm Package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Johannes Reichold.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>
