@@ -13,6 +13,7 @@ _propagate_rbc()
 from __future__ import division
 
 import numpy as np
+import sys
 from sys import stdout
 
 from pyamg import smoothed_aggregation_solver, rootnode_solver, util
@@ -31,6 +32,7 @@ import pdb
 import run_faster
 import time as ttime
 import vgm
+import os
 
 __all__ = ['LinearSystemHtdTotFixedDTnoBifRule']
 log = vgm.LogDispatcher.create_logger(__name__)
@@ -1276,7 +1278,7 @@ class LinearSystemHtdTotFixedDTnoBifRule(object):
                             if not boolTrifurcation:
                                 if ratio1 != 0 and overshootsNo != 0:
                                     def errorDistributeRBCs(n1):
-                                        #return n1/float(overshootsNo)-ratio1
+                                        #return n1/float(overshootsNo)-ratio1 #OLD Formulation
                                         return (n1+oe['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+overshootsNo)-ratio1
                                     resultMinimizeError = root(errorDistributeRBCs,np.ceil(ratio1 * overshootsNo))
                                     overshootsNo1=int(np.round(resultMinimizeError['x']))
@@ -1290,6 +1292,7 @@ class LinearSystemHtdTotFixedDTnoBifRule(object):
                                     overshootsNo2=0
                                 elif ratio1 != 0 and ratio2 != 0 and overshootsNo != 0:
                                     def errorDistributeRBCs(n12):
+                                        #return [n12[0]/float(overshootsNo)-ratio1,n12[1]/float(overshootsNo)-ratio2] #OLD Formulation
                                         return [(n12[0]+oe['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+oe3['countRBCs']+overshootsNo)-ratio1, \
                                                 (n12[1]+oe2['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+oe3['countRBCs']+overshootsNo)-ratio2]
                                     resultMinimizeError = root(errorDistributeRBCs,[np.ceil(ratio1 * overshootsNo),np.ceil(ratio2 * overshootsNo)])
@@ -1297,14 +1300,14 @@ class LinearSystemHtdTotFixedDTnoBifRule(object):
                                     overshootsNo2=int(np.round(resultMinimizeError['x'][1]))
                                 elif ratio1 != 0 and overshootsNo != 0:
                                     def errorDistributeRBCs(n1):
-                                        #return n1/float(overshootsNo)-ratio1
+                                        #return n1/float(overshootsNo)-ratio1 #OLD Formulation
                                         return (n1+oe['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+oe3['countRBCs']+overshootsNo)-ratio1
                                     resultMinimizeError = root(errorDistributeRBCs,np.ceil(ratio1 * overshootsNo))
                                     overshootsNo1=int(np.round(resultMinimizeError['x']))
                                     overshootsNo2=0
                                 elif ratio2 != 0 and overshootsNo != 0:
                                     def errorDistributeRBCs(n2):
-                                        #return n2/float(overshootsNo)-ratio2
+                                        #return n2/float(overshootsNo)-ratio2 #OLD Formulation
                                         return (n2+oe2['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+oe3['countRBCs']+overshootsNo)-ratio2
                                     resultMinimizeError = root(errorDistributeRBCs,np.ceil(ratio2 * overshootsNo))
                                     overshootsNo2=int(np.round(resultMinimizeError['x']))
@@ -2959,8 +2962,8 @@ class LinearSystemHtdTotFixedDTnoBifRule(object):
                         if nonCap:
                             if ratio1 != 0 and overshootsNo != 0:
                                 def errorDistributeRBCs(n1):
+                                    #return n1/float(overshootsNo)-ratio1 #OLD Formulation
                                     return (n1+oe['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+overshootsNo)-ratio1
-                                    #return n1/float(overshootsNo)-ratio1
                                 resultMinimizeError = root(errorDistributeRBCs,np.ceil(ratio1 * overshootsNo))
                                 overshootsNo1=int(np.round(resultMinimizeError['x']))
                             else:
@@ -4176,6 +4179,8 @@ class LinearSystemHtdTotFixedDTnoBifRule(object):
                             v['pressure']=v['pressure']/self._scaleToDef
                         g_output.write_pkl(self._sampledict,filename1)
                         vgm.write_pkl(G,filename2)
+                        if BackUpCounter >= 2:
+                            os.remove('G_BackUp'+str(BackUpCounter-2)+'.pkl')
                         self._sampledict = {}
                         self._sampledict['averagedCount']=G['averagedCount']
                         #Convert 'pBC' ['mmHG'] to default Units

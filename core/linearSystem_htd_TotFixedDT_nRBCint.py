@@ -13,6 +13,7 @@ _propagate_rbc()
 from __future__ import division
 
 import numpy as np
+import sys
 from sys import stdout
 
 from copy import deepcopy
@@ -74,8 +75,6 @@ class LinearSystemHtdTotFixedDTnRBCint(object):
                analyzeBifEvents: boolean if bifurcation events should be analyzed (Default = 0)
                innerDiam: boolean if inner or outer diamter of vessels is given in the graph 
                    (innerDiam = 1 --> inner diameter given) (Default = 0)
-               analyzeCapDil: edge index of dilated capillary should be given. Upstream divergent bifurcations
-                   will be analyzed
                species: 'rat', 'mouse' or 'human', default is 'rat'
         OUTPUT: None, however the following items are created:
                 self.A: Matrix A of the linear system, holding the conductance
@@ -87,36 +86,31 @@ class LinearSystemHtdTotFixedDTnRBCint(object):
         self._P = Physiology(G['defaultUnits'])
         self._dThreshold = dThreshold
         self._invivo=invivo
-        nVertices = G.vcount()
-        self._b = zeros(nVertices)
-        self._x = zeros(nVertices)
-        self._A = lil_matrix((nVertices,nVertices),dtype=float)
+        self._b = zeros(G.vcount())
+        self._x = zeros(G.vcount())
+        self._A = lil_matrix((G.vcount(),G.vcount()),dtype=float)
         self._eps = finfo(float).eps * 1e4
         self._tPlot = 0.0
         self._tSample = 0.0
         self._filenamelist = []
         self._timelist = []
-        #self._filenamelistAvg = []
 	self._timelistAvg = []
         self._sampledict = {} 
-	#self._transitTimeDict = {}
 	self._init=init
         self._scaleToDef=vgm.units.scaling_factor_du('mmHg',G['defaultUnits'])
-        self._dtFix=0.0
         self._vertexUpdate=None
         self._edgeUpdate=None
         G.es['source']=[e.source for e in G.es]
         G.es['target']=[e.target for e in G.es]
         G.es['crosssection']=np.array([0.25*np.pi]*G.ecount())*np.array(G.es['diameter'])**2
         G.es['volume']=[e['crosssection']*e['length'] for e in G.es]
-        #Used because the Pries functions are onlt defined for vessels till 3micron
-        G.es['diamCalcEff']=[i if i >= 3. else 3.0 for i in G.es['diameter'] ]
-        G.es['keep_rbcs']=[[] for i in range(G.ecount())]
         adjacent=[]
         self._spacing=[]
-        for i in range(G.vcount()):
+        for i in xrange(G.vcount()):
             adjacent.append(G.adjacent(i))
         G.vs['adjacent']=adjacent
+        G['av']=G.vs(av_eq=1).indices
+        G['vv']=G.vs(vv_eq=1).indices
 
         htd2htt=self._P.discharge_to_tube_hematocrit
         htt2htd = self._P.tube_to_discharge_hematocrit
@@ -126,8 +120,8 @@ class LinearSystemHtdTotFixedDTnRBCint(object):
         else:
             self._species = 'rat'
 
-        #print('Species')
-        #print(self._species)
+        print('Species')
+        print(self._species)
 
         if kwargs.has_key('analyzeBifEvents'):
             self._analyzeBifEvents = kwargs['analyzeBifEvents']
@@ -138,14 +132,6 @@ class LinearSystemHtdTotFixedDTnRBCint(object):
             self._innerDiam = kwargs['innerDiam']
         else:
             self._innerDiam = 0
-
-        if kwargs.has_key('analyzeCapDil'):
-            self._capDil = kwargs['analyzeCapDil']
-            print('capDil')
-            print(self._capDil)
-            print(G.ecount())
-        else:
-            self._capDil = 0
 
         # Assure that both pBC and rBC edge properties are present:
         for key in ['pBC', 'rBC']:
@@ -165,11 +151,11 @@ class LinearSystemHtdTotFixedDTnRBCint(object):
                 del(G['edgesMovedRBCs'])
         # Set initial pressure and flow to zero:
 	if init:
-            G.vs['pressure']=zeros(nVertices) 
+            G.vs['pressure']=zeros(G.vcount()) 
             G.es['flow']=zeros(G.ecount())    
 
         G.vs['degree']=G.degree()
-        #print('Initial flow, presure, ... assigned')
+        print('Initial flow, presure, ... assigned')
 
         if not init:
            if 'averagedCount' not in G.attributes():
@@ -181,7 +167,7 @@ class LinearSystemHtdTotFixedDTnRBCint(object):
         G['V']=0
         for e in G.es:
             G['V']=G['V']+e['crosssection']*e['length']
-        #print('Total network volume calculated')
+        print('Total network volume calculated')
 
         # Compute the edge-specific minimal RBC distance:
         vrbc = self._P.rbc_volume(self._species)
@@ -195,16 +181,13 @@ class LinearSystemHtdTotFixedDTnRBCint(object):
             sys.exit("BIGERROR nMax=0 exists --> check vessel lengths") 
 
         # Assign capillaries and non capillary vertices
-        #print('Start assign capillary and non capillary vertices')
+        print('Start assign capillary and non capillary vertices')
         adjacent=[np.array(G.incident(i)) for i in G.vs]
-        G.vs['isCap']=[None]*G.vcount()
+        G.vs['isCap']=[False]*G.vcount()
         self._interfaceVertices=[]
         for i in xrange(G.vcount()):
-            #print(i)
             category=[]
             for j in adjacent[i]:
-                #print(j)
-                #print(G.es.attribute_names())
                 if G.es[int(j)]['diameter'] < dThreshold:
                     category.append(1)
                 else:
@@ -215,23 +198,15 @@ class LinearSystemHtdTotFixedDTnRBCint(object):
                 G.vs[i]['isCap']=False
             else:
                 self._interfaceVertices.append(i)
-        #print('End assign capillary and non capillary vertices')
+        print('End assign capillary and non capillary vertices')
 
         # Arterial-side inflow:
         if init:
-            if 'htdBC' in G.es.attribute_names() and 'httBC' not in G.es.attribute_names():
-                G.es['httBC']=[e['htdBC'] if e['htdBC'] == None else \
-                    self._P.discharge_to_tube_hematocrit(e['htdBC'],e['diameter'],invivo) for e in G.es()]
             if not 'httBC' in G.es.attribute_names():
                 for vi in G['av']:
                     for ei in G.adjacent(vi):
-                        G.es[ei]['httBC'] = self._P.tube_hematocrit(
-                                                G.es[ei]['diameter'], 'a')
+                        G.es[ei]['httBC'] = self._P.tube_hematocrit(G.es[ei]['diameter'], 'a')
 
-        #Convert tube hematocrit boundary condition to htdBC (in case it does not already exist)
-        #if not 'htdBC' in G.es.attribute_names():
-        #   G.es['htdBC']=[e['httBC'] if e['httBC'] == None else \
-        #        self._P.tube_to_discharge_hematocrit(e['httBC'],e['diameter'],invivo) for e in G.es()]
         print('Htt BC assigned')
 
         httBC_edges = G.es(httBC_ne=None).indices
@@ -245,36 +220,20 @@ class LinearSystemHtdTotFixedDTnRBCint(object):
 
         # Assign initial RBC positions:
 	if init:
-            if kwargs.has_key('hd0'):
-                hd0=kwargs['hd0']
-                if hd0 == 'current':
-                    ht0=hd0
-                else:
-                    ht0='dummy'
-            if kwargs.has_key('ht0'):
+            if 'ht0' not in kwargs.keys():
+                print('ERROR no inital tube hematocrit given for distribution of RBCs')
+            else:
                 ht0=kwargs['ht0']
-            if ht0 != 'current':
-                for e in G.es:
-                    lrbc = e['minDist']
-                    Nmax = max(int(np.floor(e['nMax'])), 1)
-                    if e['httBC'] is not None:
-                        N = int(np.round(e['httBC'] * Nmax))
-                    else:
-                        if kwargs.has_key('hd0'):
-                            ht0=self._P.discharge_to_tube_hematocrit(hd0,e['diameter'],invivo)
-                        N = int(np.round(ht0 * Nmax))
-                    indices = sorted(np.random.permutation(Nmax)[:N])
-                    e['rRBC'] = np.array(indices) * lrbc + lrbc / 2.0
-            #in every edge with httBC should be at least on RBC in the initial state. This is necessary to
-            #properly initialize v_last
-            httBC_edges = G.es(httBC_ne=None)
-            for e in httBC_edges:
-                if len(e['rRBC']) == 0:
-                    Nmax = max(int(np.floor(e['nMax'])), 1)
-                    N=1
-                    indices = sorted(np.random.permutation(Nmax)[:N])
-                    e['rRBC'] = np.array(indices) * lrbc + lrbc / 2.0
-         
+            for e in G.es:
+                lrbc = e['minDist']
+                Nmax = max(int(np.floor(e['nMax'])), 1)
+                if e['httBC'] is not None:
+                    N = int(np.round(e['httBC'] * Nmax))
+                else:
+                    N = int(np.round(ht0 * Nmax))
+                indices = sorted(np.random.permutation(Nmax)[:N])
+                e['rRBC'] = np.array(indices) * lrbc + lrbc / 2.0
+        print('Initial nRBC computed')    
         G.es['nRBC']=[len(e['rRBC']) for e in G.es]
         G.es['nRBCint']=G.es['nRBC']
 
@@ -285,30 +244,37 @@ class LinearSystemHtdTotFixedDTnRBCint(object):
 
         # Compute nominal and specific resistance:
         self._update_nominal_and_specific_resistance()
-        #print('Resistance updated')
+        print('Resistance updated')
 
         # Compute the current tube hematocrit from the RBC positions:
         for e in G.es:
             e['htt']=min(len(e['rRBC'])*vrbc/e['volume'],1)
             e['htd']=min(htt2htd(e['htt'], e['diameter'], invivo), 1.0)
-        #print('Initial htt and htd computed')        
+        print('Initial htt and htd computed')        
 
+        # This initializes the full LS. Later, only relevant parts of
+        # the LS need to be changed at any timestep. Also, RBCs are
+        # removed from no-flow edges to avoid wasting computational
+        # time on non-functional vascular branches / fragments:
+        #Convert 'pBC' ['mmHG'] to default Units
         for v in G.vs:
             if v['pBC'] != None:
                 v['pBC']=v['pBC']*self._scaleToDef
-        self._update_eff_resistance_and_LS(None, None)
-        #print('Matrix created')
+        self._update_eff_resistance_and_LS(None)
+        print('Matrix created')
         self._solve('iterative2')
-        #print('Matrix solved')
-        self._G.vs['pressure'] = deepcopy(self._x)
+        print('Matrix solved')
+        self._G.vs['pressure'] = self._x[:]
         #Convert deaultUnits to 'pBC' ['mmHG']
         for v in G.vs:
             if v['pBC'] != None:
                 v['pBC']=v['pBC']/self._scaleToDef
         self._update_flow_and_velocity()
-        #print('Flow updated')
+        print('Flow updated')
+        self._verify_mass_balance()
+        print('Mass balance verified updated')
         self._update_flow_sign()
-        #print('Flow sign updated')
+        print('Flow sign updated')
         self._update_out_and_inflows_for_vertices()
         #print('updated out and inflows')
 
@@ -467,72 +433,6 @@ class LinearSystemHtdTotFixedDTnRBCint(object):
         self._update_out_and_inflows_for_vertices()
         #print('updated out and inflows')
 
-        Gdummy=deepcopy(G)
-        #Find upstream divergent bifurcations
-        if self._capDil != 0:
-            Gdummy.to_directed_flow_based()
-            e=Gdummy.es[self._capDil]
-            self._upstreamDivBifs=[]
-            self._upstreamAFeedBifs=[]
-            upstreamBifs=[]
-            paths=[]
-            newPaths=[]
-            direction='in'
-            upstreamBifs.append(e.source)
-            if Gdummy.vs['vType'][e.source]== 3:
-                self._upstreamDivBifs.append(e.source)
-            paths.append(upstreamBifs)
-            countDone = 0
-            #print('Start at')
-            #print(paths)
-            #print(upstreamBifs)
-            #print(self._upstreamDivBifs)
-            while len(self._upstreamDivBifs) < 3 and len(paths) != countDone:
-                countDone = 0
-                for path in paths:
-                    #print('paths')
-                    #print(path)
-                    #print(self._upstreamDivBifs)
-                    #print(G.vs[self._upstreamDivBifs]['vType'])
-                    #print(Gdummy.neighbors(path[-1],type=direction))
-                    if Gdummy.neighbors(path[-1],type=direction) == []:
-                        newPaths.append(path)
-                        countDone += 1
-                    else:
-                        for neighbor in Gdummy.neighbors(path[-1],type=direction):
-                            #if neighbor not in path:
-                            newPaths.append(path + [neighbor])
-                            if Gdummy.vs['vType'][neighbor] == 3:
-                                self._upstreamDivBifs.append(neighbor)
-                            if Gdummy.vs['kind'][neighbor] == 'a':
-                                self._upstreamAFeedBifs.append(neighbor)
-                                countDone += 1
-                paths = newPaths
-                newPaths = []
-                if countDone == len(paths):
-                    #print('countDone = len(paths)')
-                    break
-            #print('Check Feeding Arteries')
-            #print(self._upstreamAFeedBifs)
-            self._analyzeDivBifEvents=[]
-            self._DivBifEdges=[]
-            self._upstreamDivBifsCount = []
-            self._upstreamDivBifsNotDiv = []
-            for i in self._upstreamDivBifs:
-                self._upstreamDivBifsCount.append(0)
-                self._upstreamDivBifsNotDiv.append(0)
-                dummy=[]
-                dummy2=[]
-                for j in Gdummy.adjacent(i,'out'):
-                    dummy.append(j)
-                    dummy2.append(0)
-                self._DivBifEdges.append(dummy)
-                self._analyzeDivBifEvents.append(dummy2)
-            #print('upstreamDivBifs')
-            #print(self._upstreamDivBifs)
-            #print(self._DivBifEdges)
-             
-        del(Gdummy)
         #Calculate an estimated network turnover time (based on conditions at the beginning)
         flowsum=0
 
@@ -541,16 +441,12 @@ class LinearSystemHtdTotFixedDTnRBCint(object):
                 flowsum=flowsum+G.es['flow'][ei]
         G['flowSumIn']=flowsum
         G['Ttau']=G['V']/flowsum
-        #print(flowsum)
-        #print(G['V'])
-        #print(self._eps)
+        print(flowsum)
+        print(G['V'])
+        print(self._eps)
         stdout.write("\rEstimated network turnover time Ttau=%f        \n" % G['Ttau'])
 
-        #for e in self._G.es(flow_le=self._eps*1e6):
-        #    e['rRBC'] = []
-            
     #--------------------------------------------------------------------------
-
     def _compute_mu_sigma_inlet_RBC_distribution(self, httBC):
         """Updates the nominal and specific resistance of a given edge 
         sequence.
@@ -1166,7 +1062,7 @@ class LinearSystemHtdTotFixedDTnRBCint(object):
             vertexList=[int(i) for i in vertexList]
         dischargeHt = [min(htt2htd(e, d, invivo), 1.0) for e,d in zip(G.es[edgeList]['htt'],G.es[edgeList]['diameter'])]
         G.es[edgeList]['effResistance'] =[ res * nurel(max(d,4.0), min(dHt,0.6),invivo) for res,dHt,d in zip(G.es[edgeList]['resistance'], \
-            dischargeHt,G.es[edgeList]['diamCalcEff'])]
+            dischargeHt,G.es[edgeList]['diameter'])]
 
         edgeList = G.es(edgeList)
         vertexList = G.vs(vertexList)
