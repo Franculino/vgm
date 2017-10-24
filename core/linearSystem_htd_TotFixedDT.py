@@ -13,6 +13,7 @@ _propagate_rbc()
 from __future__ import division
 
 import numpy as np
+import sys
 from sys import stdout
 
 from pyamg import smoothed_aggregation_solver, rootnode_solver, util
@@ -167,6 +168,8 @@ class LinearSystemHtdTotFixedDT(object):
             eslThickness = self._P.esl_thickness
             G.es['minDist'] = [vrbc / (np.pi * (d-2*eslThickness(d))**2 / 4) for d in G.es['diameter']]
         G.es['nMax'] = [np.floor(e['length']/ e['minDist']) for e in G.es] 
+        if len(G.es(nMax_eq=0)) > 0:
+            sys.exit("BIGERROR nMax=0 exists --> check vessel lengths") 
 
         # Assign capillaries and non capillary vertices
         print('Start assign capillary and non capillary vertices')
@@ -1273,7 +1276,8 @@ class LinearSystemHtdTotFixedDT(object):
                             if not boolTrifurcation:
                                 if ratio1 != 0 and overshootsNo != 0:
                                     def errorDistributeRBCs(n1):
-                                        return n1/float(overshootsNo)-ratio1
+                                        #return n1/float(overshootsNo)-ratio1
+                                        return (n1+oe['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+overshootsNo)-ratio1
                                     resultMinimizeError = root(errorDistributeRBCs,np.ceil(ratio1 * overshootsNo))
                                     overshootsNo1=int(np.round(resultMinimizeError['x']))
                                 else:
@@ -1286,19 +1290,23 @@ class LinearSystemHtdTotFixedDT(object):
                                     overshootsNo2=0
                                 elif ratio1 != 0 and ratio2 != 0 and overshootsNo != 0:
                                     def errorDistributeRBCs(n12):
-                                        return [n12[0]/float(overshootsNo)-ratio1,n12[1]/float(overshootsNo)-ratio2]
+                                        #return [n12[0]/float(overshootsNo)-ratio1,n12[1]/float(overshootsNo)-ratio2]
+                                        return [(n1+oe['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+oe3['countRBCs']+overshootsNo)-ratio1, \
+                                                (n2+oe2['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+oe3['countRBCs']+overshootsNo)-ratio2]
                                     resultMinimizeError = root(errorDistributeRBCs,[np.ceil(ratio1 * overshootsNo),np.ceil(ratio2 * overshootsNo)])
                                     overshootsNo1=int(np.round(resultMinimizeError['x'][0]))
                                     overshootsNo2=int(np.round(resultMinimizeError['x'][1]))
                                 elif ratio1 != 0 and overshootsNo != 0:
                                     def errorDistributeRBCs(n1):
-                                        return n1/float(overshootsNo)-ratio1
+                                        #return n1/float(overshootsNo)-ratio1
+                                        return (n1+oe['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+oe3['countRBCs']+overshootsNo)-ratio1
                                     resultMinimizeError = root(errorDistributeRBCs,np.ceil(ratio1 * overshootsNo))
                                     overshootsNo1=int(np.round(resultMinimizeError['x']))
                                     overshootsNo2=0
                                 elif ratio2 != 0 and overshootsNo != 0:
                                     def errorDistributeRBCs(n2):
-                                        return n2/float(overshootsNo)-ratio2
+                                        #return n2/float(overshootsNo)-ratio2
+                                        return (n2+oe2['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+oe3['countRBCs']+overshootsNo)-ratio2
                                     resultMinimizeError = root(errorDistributeRBCs,np.ceil(ratio2 * overshootsNo))
                                     overshootsNo2=int(np.round(resultMinimizeError['x']))
                                     overshootsNo1=0
@@ -2952,7 +2960,8 @@ class LinearSystemHtdTotFixedDT(object):
                         if nonCap:
                             if ratio1 != 0 and overshootsNo != 0:
                                 def errorDistributeRBCs(n1):
-                                    return n1/float(overshootsNo)-ratio1
+                                    #return n1/float(overshootsNo)-ratio1
+                                    return (n1+oe['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+overshootsNo)-ratio1
                                 resultMinimizeError = root(errorDistributeRBCs,np.ceil(ratio1 * overshootsNo))
                                 overshootsNo1=int(np.round(resultMinimizeError['x']))
                             else:
@@ -4007,6 +4016,8 @@ class LinearSystemHtdTotFixedDT(object):
          OUTPUT: None (files are written to disk)
         """
         G=self._G
+        if len(G.es(nMax_eq=0)) > 0:
+            sys.exit("BIGERROR nMax=0 exists --> check vessel lengths") 
         tPlot = self._tPlot 
         tSample = self._tSample 
         filenamelist = self._filenamelist

@@ -193,6 +193,8 @@ class LinearSystemHtdTotFixedDTStempAvgBox(object):
             eslThickness = self._P.esl_thickness
             G.es['minDist'] = [vrbc / (np.pi * (d-2*eslThickness(d))**2 / 4) for d in G.es['diameter']]
         G.es['nMax'] = [np.floor(e['length']/ e['minDist']) for e in G.es] 
+        if len(G.es(nMax_eq=0)) > 0:
+            sys.exit("BIGERROR nMax=0 exists --> check vessel lengths") 
 
         # Assign capillaries and non capillary vertices
         print('Start assign capillary and non capillary vertices')
@@ -5417,6 +5419,8 @@ class LinearSystemHtdTotFixedDTStempAvgBox(object):
          OUTPUT: None (files are written to disk)
         """
         G=self._G
+        if len(G.es(nMax_eq=0)) > 0:
+            sys.exit("BIGERROR nMax=0 exists --> check vessel lengths") 
         tPlot = self._tPlot # deepcopy, since type is float
         tSample = self._tSample # deepcopy, since type is float
         filenamelist = self._filenamelist
