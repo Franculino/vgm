@@ -200,7 +200,6 @@ class LinearSystemHtdTotFixedDT(object):
                         G.es[ei]['httBC'] = self._P.tube_hematocrit(G.es[ei]['diameter'], 'a')
 
         print('Htt BC assigned')
-
         httBC_edges = G.es(httBC_ne=None).indices
         #Save initial value of httBC
         if init:
@@ -296,10 +295,8 @@ class LinearSystemHtdTotFixedDT(object):
             del(G.es['signOld'])
         self._update_out_and_inflows_for_vertices()
         print('updated out and inflows')
-
         #Calculate an estimated network turnover time (based on conditions at the beginning)
         flowsum=0
-
 	for vi in G['av']:
             for ei in G.adjacent(vi):
                 flowsum=flowsum+G.es['flow'][ei]
@@ -502,7 +499,7 @@ class LinearSystemHtdTotFixedDT(object):
                         inE.append(adjacents[j])
                 #Deal with vertices at the interface
                 #isCap is defined based on the diameter of the InflowEdge
-                if vI in interfaceVertices: 
+                if vI in interfaceVertices:
                     capCountIn = 0
                     capCount = 0
                     for j in adjacents:
@@ -553,7 +550,7 @@ class LinearSystemHtdTotFixedDT(object):
                         print(vI)
                         G.vs[vI]['av'] = 1
                         G.vs[vI]['vv'] = 0
-			G.vs[vI]['vType'] = 1
+                        G.vs[vI]['vType'] = 1
                         edgeVI=G.adjacent(vI)[0]
                         G.es[edgeVI]['httBC']=G.es[edgeVI]['httBC_init']
                         if len(G.es[edgeVI]['rRBC']) > 0:
@@ -663,7 +660,7 @@ class LinearSystemHtdTotFixedDT(object):
                             inE.append(adjacents[j])
                     #Deal with vertices at the interface
                     #isCap is defined based on the diameter of the InflowEdge
-                    if vI in interfaceVertices: 
+                    if vI in interfaceVertices:
                         capCountIn = 0
                         capCount = 0
                         for j in adjacents:
@@ -762,7 +759,7 @@ class LinearSystemHtdTotFixedDT(object):
                             print(vI)
                             G.vs[vI]['av'] = 1
                             G.vs[vI]['vv'] = 0
-			    G.vs[vI]['vType'] = 1
+                            G.vs[vI]['vType'] = 1
                             edgeVI=G.adjacent(vI)[0]
                             G.es[edgeVI]['httBC']=G.es[edgeVI]['httBC_init']
                             if len(G.es[edgeVI]['rRBC']) > 0:
@@ -780,9 +777,6 @@ class LinearSystemHtdTotFixedDT(object):
                                 if self._innerDiam:
                                     LDValue = httBCValue
                                 else:
-                                    print('httBCValue')
-                                    print(httBCValue)
-                                    print(edgeVI)
                                     LDValue=httBCValue*(G.es[edgeVI]['diameter']/(G.es[edgeVI]['diameter']-2*eslThickness(G.es[edgeVI]['diameter'])))**2
                                 logNormalMu,logNormalSigma=self._compute_mu_sigma_inlet_RBC_distribution(LDValue)
                                 G.es[edgeVI]['logNormal']=[logNormalMu,logNormalSigma]
@@ -803,7 +797,7 @@ class LinearSystemHtdTotFixedDT(object):
                             print(vI)
                             G.vs[vI]['av'] = 1
                             G.vs[vI]['vv'] = 0
-			    G.vs[vI]['vType'] = 1
+                            G.vs[vI]['vType'] = 1
                             edgeVI=G.adjacent(vI)[0]
                             G.es[edgeVI]['httBC']=G.es[edgeVI]['httBC_init']
                             if len(G.es[edgeVI]['rRBC']) > 0:
@@ -832,18 +826,17 @@ class LinearSystemHtdTotFixedDT(object):
                             G.es[noFlowEdges]['noFlow']=[1]*len(noFlowEdges)
                             G.vs[vI]['inflowE']=[]
                             G.vs[vI]['outflowE']=[]
-
             G['av']=G.vs(av_eq=1).indices
             G['vv']=G.vs(vv_eq=1).indices
         stdout.flush()
         if len(G.vs(av_eq=1,degree_gt=1))>0:
             print('BIGERROR av')
             G['avProb']=G.vs(av_eq=1,degree_gt=1).indices
-            vgm.write_pkl(G,'Gavprob.pkl') 
+            vgm.write_pkl(G,'Gavprob.pkl')
         if len(G.vs(vv_eq=1,degree_gt=1))>0:
             print('BIGERROR vv')
             G['vvProb']=G.vs(vv_eq=1,degree_gt=1).indices
-            vgm.write_pkl(G,'Gvvprob.pkl') 
+            vgm.write_pkl(G,'Gvvprob.pkl')
 
     #--------------------------------------------------------------------------
 
@@ -882,7 +875,6 @@ class LinearSystemHtdTotFixedDT(object):
                 b: Vector b of the linear system, holding the boundary
                    conditions.
         """
-
 
         G = self._G
         P = self._P
@@ -1001,8 +993,6 @@ class LinearSystemHtdTotFixedDT(object):
             nRBCSumBefore = np.sum(G.es[edgesInvolved]['nRBC'])
             overshootsNo=0 #Reset - Number of overshoots acutally taking place (considers possible number of bifurcation events)
             #If there is a BC for the edge new RBCs have to be introduced
-            #Check if the RBCs in the edge have been moved already (--> convergent bifurcation)
-            #Recheck if bifurcation vertex is a noFlow Vertex (vType=7)
             boolHttEdge = 0
             boolHttEdge2 = 0
             boolHttEdge3 = 0
@@ -1048,7 +1038,7 @@ class LinearSystemHtdTotFixedDT(object):
                 #Convergent Edge without a bifurcation event
                 if noBifEvents == 0 and (G.vs[vi]['vType']==4 or G.vs[vi]['vType']==6):
                     convEdges2[ei]=1
-                #-------------------------------------------------------------------------------------------
+        #-------------------------------------------------------------------------------------------
                 #Check if a bifurcation event is taking place
                 if noBifEvents > 0:
                     #If Edge is outlflow Edge --> remove RBCs
@@ -1058,7 +1048,7 @@ class LinearSystemHtdTotFixedDT(object):
                         vertexUpdate.append(e['target'])
                         vertexUpdate.append(e['source'])
                         edgeUpdate.append(ei)
-                    #-------------------------------------------------------------------------------------------
+            #-------------------------------------------------------------------------------------------
                     #if vertex is connecting vertex
                     elif G.vs[vi]['vType'] == 5:
                         outE=G.vs[vi]['outflowE'][0]
@@ -1191,15 +1181,13 @@ class LinearSystemHtdTotFixedDT(object):
                                     count += 1
                                     if count >= noStuckRBCs+1 and moved == 0:
                                         break
-                    #-------------------------------------------------------------------------------------------
+          #-------------------------------------------------------------------------------------------
                     #if vertex is divergent vertex
                     elif G.vs[vi]['vType'] == 3:
                         outEdges=G.vs[vi]['outflowE']
                         boolTrifurcation = 0
                         if len(outEdges) > 2:
                             boolTrifurcation = 1
-                        #Check if there are two or three outEdgs
-                        #print('its a divergent bifurcation')
                         #Differ between capillaries and non-capillaries
                         if G.vs[vi]['isCap']:
                             nonCap = 0
@@ -1437,7 +1425,7 @@ class LinearSystemHtdTotFixedDT(object):
                                                 positionPref1.append(position1[index1])
                                             countNo1 += 1
                                             last = 1
-                                        else: 
+                                        else:
                                             if countNo2 < overshootsNo2:
                                                 if positionPref2 == []:
                                                     if len(oe2['rRBC']) > 0:
@@ -1525,7 +1513,7 @@ class LinearSystemHtdTotFixedDT(object):
                                                 positionPref2.append(position2[index2])
                                             countNo2 += 1
                                             last = 2
-                                        else: 
+                                        else:
                                             if countNo3 < overshootsNo3:
                                                 if positionPref3 == []:
                                                     if len(oe3['rRBC']) > 0:
@@ -1613,7 +1601,7 @@ class LinearSystemHtdTotFixedDT(object):
                                                 positionPref3.append(position3[index3])
                                             countNo3 += 1
                                             last = 3
-                                        else: 
+                                        else:
                                             if countNo1 < overshootsNo1:
                                                 if positionPref1 == []:
                                                     if len(oe['rRBC']) > 0:
@@ -2458,7 +2446,7 @@ class LinearSystemHtdTotFixedDT(object):
                                                             else:
                                                                 pref3Full = 1
                                                                 break
-                                                        else: 
+                                                        else:
                                                             position3[index3]=positionPref3[-1]+oe3['minDist']
                                                             if position3[index3] < oe3['length']:
                                                                 positionPref3.append(position3[index3])
@@ -2502,7 +2490,7 @@ class LinearSystemHtdTotFixedDT(object):
                                 else:
                                     if countPref2+countPref1 != overshootsNo:
                                         overshootsNo = countPref2+countPref1
-                            #add RBCs to outEPref1
+                            #Add RBCs to outEPref1
                             oe['countRBCs']+=len(positionPref1)
                             if oe['sign'] == 1.0:
                                 oe['rRBC']=np.concatenate([positionPref1[::-1], oe['rRBC']])
@@ -2558,8 +2546,8 @@ class LinearSystemHtdTotFixedDT(object):
                                     count += 1
                                     if count >= noStuckRBCs+1 and moved == 0:
                                         break
-                    #-------------------------------------------------------------------------------------------
-                    #if vertex is convergent vertex
+    #-------------------------------------------------------------------------------------------
+                #if vertex is convergent vertex
                     elif G.vs[vi]['vType'] == 4:
                         boolTrifurcation = 0
                         bifRBCsIndex1=bifRBCsIndex
@@ -2879,7 +2867,7 @@ class LinearSystemHtdTotFixedDT(object):
                                         count += 1
                                         if count >= noStuckRBCs3+1 and moved == 0:
                                             break
-                    #------------------------------------------------------------------------------------------
+         #------------------------------------------------------------------------------------------
                     #if vertex is double connecting vertex
                     elif G.vs[vi]['vType'] == 6:
                         bifRBCsIndex1=bifRBCsIndex
@@ -3087,7 +3075,7 @@ class LinearSystemHtdTotFixedDT(object):
                                                 count1 += 1
                                             else:
                                                 count2 += 1
-                                        else: 
+                                        else:
                                             if countNo2 < overshootsNo2:
                                                 if positionPref2 == []:
                                                     if len(oe2['rRBC']) > 0:
@@ -3159,7 +3147,7 @@ class LinearSystemHtdTotFixedDT(object):
                                                 count1 += 1
                                             else:
                                                 count2 += 1
-                                        else: 
+                                        else:
                                             if countNo1 < overshootsNo1:
                                                 if positionPref1 == []:
                                                     if len(oe['rRBC']) > 0:
@@ -3566,9 +3554,9 @@ class LinearSystemHtdTotFixedDT(object):
                                     #There is no more space for further RBCs
                                     else:
                                         break
+                            #Add rbcs to outEPref
                                 if countPref2+countPref1 != overshootsNo:
                                     overshootsNo = countPref2+countPref1
-                            #Add rbcs to outEPref
                             oe['countRBCs']+=len(positionPref1)
                             if oe['sign'] == 1.0:
                                 oe['rRBC']=np.concatenate([positionPref1[::-1], oe['rRBC']])
@@ -3972,7 +3960,6 @@ class LinearSystemHtdTotFixedDT(object):
                             if count3 > 0:
                                 rbcsMovedPerEdge.append(count3)
                                 edgesWithMovedRBCs.append(e.index)
-
         #-------------------------------------------------------------------------------------------
         self._vertexUpdate=np.unique(vertexUpdate)
         edgeUpdate=np.unique(edgeUpdate)
@@ -4253,9 +4240,7 @@ class LinearSystemHtdTotFixedDT(object):
                     v['pBC']=v['pBC']/self._scaleToDef
                 v['pressure']=v['pressure']/self._scaleToDef
             self._sample_average()
-            g_output.write_pkl(self._sampledict, 'sampledict.pkl')
             g_output.write_pkl(self._sampledict,filename1)
-        vgm.write_pkl(G, 'G_final.pkl')
         vgm.write_pkl(G,filename2)
 
     #--------------------------------------------------------------------------
@@ -4488,6 +4473,3 @@ class LinearSystemHtdTotFixedDT(object):
         """Computes the norm of the current residual.
         """
         return np.linalg.norm(self._A * self._x - self._b)
-                
-
-                   

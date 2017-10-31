@@ -13,10 +13,12 @@ _propagate_rbc()
 from __future__ import division
 
 import numpy as np
+import sys
 from sys import stdout
 
 from pyamg import smoothed_aggregation_solver, rootnode_solver, util
 import pyamg
+import scipy as sp
 from scipy import finfo, ones, zeros
 from scipy.sparse import lil_matrix, linalg
 from scipy.integrate import quad
@@ -30,7 +32,7 @@ import pdb
 import run_faster
 import time as ttime
 import vgm
-import sys
+import os
 
 __all__ = ['LinearSystemHtdTotFixedDTTrack']
 log = vgm.LogDispatcher.create_logger(__name__)
@@ -78,10 +80,9 @@ class LinearSystemHtdTotFixedDTTrack(object):
         self._P = Physiology(G['defaultUnits'])
         self._dThreshold = dThreshold
         self._invivo=invivo
-        nVertices = G.vcount()
-        self._b = zeros(nVertices)
-        self._x = zeros(nVertices)
-        self._A = lil_matrix((nVertices,nVertices),dtype=float)
+        self._b = zeros(G.vcount())
+        self._x = zeros(G.vcount())
+        self._A = lil_matrix((G.vcount(),G.vcount()),dtype=float)
         self._eps = finfo(float).eps * 1e4
         self._tPlot = 0.0
         self._tSample = 0.0
@@ -105,7 +106,6 @@ class LinearSystemHtdTotFixedDTTrack(object):
         G.es['countRBCs']=[0]*G.ecount()
         G.es['crosssection']=np.array([0.25*np.pi]*G.ecount())*np.array(G.es['diameter'])**2
         G.es['volume']=[e['crosssection']*e['length'] for e in G.es]
-        
         adjacent=[]
         for i in xrange(G.vcount()):
             adjacent.append(G.adjacent(i))
@@ -155,20 +155,19 @@ class LinearSystemHtdTotFixedDTTrack(object):
                 del(G['rbcsMovedPerEdge'])
             if 'rbcMovedAll' in G.attributes():
                 del(G['edgesMovedRBCs'])
-
         # Set initial pressure and flow to zero:
 	if init:
-            G.vs['pressure']=zeros(nVertices) 
-            G.es['flow']=zeros(G.ecount())   
- 
+            G.vs['pressure']=zeros(G.vcount()) 
+            G.es['flow']=zeros(G.ecount())    
+
         G.vs['degree']=G.degree()
         print('Initial flow, presure, ... assigned')
 
         if not init:
-            if 'averagedCount' not in G.attributes():
-                self._sampledict['averagedCount']=0
-            else:
-                self._sampledict['averagedCount']=G['averagedCount']
+           if 'averagedCount' not in G.attributes():
+               self._sampledict['averagedCount']=0
+           else:
+               self._sampledict['averagedCount']=G['averagedCount']
 
         #Calculate total network Volume
         G['V']=0
@@ -178,7 +177,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
 
         # Compute the edge-specific minimal RBC distance:
         vrbc = self._P.rbc_volume(self._species)
-        if self._innerDiam: 
+        if self._innerDiam:
             G.es['minDist'] = [vrbc / (np.pi * e['diameter']**2 / 4) for e in G.es]
         else:
             eslThickness = self._P.esl_thickness
@@ -214,6 +213,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                     for ei in G.adjacent(vi):
                         G.es[ei]['httBC'] = self._P.tube_hematocrit(G.es[ei]['diameter'], 'a')
 
+        print('Htt BC assigned')
         httBC_edges = G.es(httBC_ne=None).indices
         #Save initial value of httBC
         if init:
@@ -235,8 +235,6 @@ class LinearSystemHtdTotFixedDTTrack(object):
                 if e['httBC'] is not None:
                     N = int(np.round(e['httBC'] * Nmax))
                 else:
-                    if kwargs.has_key('hd0'):
-                        ht0=self._P.discharge_to_tube_hematocrit(hd0,e['diameter'],invivo)
                     N = int(np.round(ht0 * Nmax))
                 indices = sorted(np.random.permutation(Nmax)[:N])
                 e['rRBC'] = np.array(indices) * lrbc + lrbc / 2.0
@@ -341,7 +339,6 @@ class LinearSystemHtdTotFixedDTTrack(object):
             del(G.es['signOld'])
         self._update_out_and_inflows_for_vertices()
         print('updated out and inflows')
-	
         #Calculate an estimated network turnover time (based on conditions at the beginning)
         flowsum=0
 	for vi in G['av']:
@@ -355,7 +352,6 @@ class LinearSystemHtdTotFixedDTTrack(object):
         stdout.write("\rEstimated network turnover time Ttau=%f        \n" % G['Ttau'])
 
     #--------------------------------------------------------------------------
-
     def _compute_mu_sigma_inlet_RBC_distribution(self, httBC):
         """Updates the nominal and specific resistance of a given edge 
         sequence.
@@ -376,7 +372,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
         #f_mean integral dummy
         f_mean_LD_dummy = lambda z,mu,sigma: z*f_LD(z,mu,sigma)
         
-        ##calculate mean
+        #calculate mean
         f_mean_LD = lambda mu,sigma: quad(f_mean_LD_dummy,0,1,args=(mu,sigma))[0]
         f_mean_LD_Calc=np.vectorize(f_mean_LD)
         
@@ -410,8 +406,8 @@ class LinearSystemHtdTotFixedDTTrack(object):
     def _update_nominal_and_specific_resistance(self, esequence=None):
         """Updates the nominal and specific resistance of a given edge 
         sequence.
-        INPUT: es: Sequence of edge indices as tuple. If not provided, all 
-                   edges are updated.
+        INPUT: esequence: Sequence of edge indices as tuple. If not provided, all 
+                   edges are updated. (WARNING: list should only contain int no np.int)
         OUTPUT: None, the edge properties 'resistance' and 'specificResistance'
                 are updated (or created).
         """
@@ -436,7 +432,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
     def _update_hematocrit(self, esequence=None):
         """Updates the tube hematocrit of a given edge sequence.
         INPUT: es: Sequence of edge indices as tuple. If not provided, all 
-                   edges are updated.
+                   edges are updated. (WARNING: list should only contain int no np.int)
         OUTPUT: None, the edge property 'htt' is updated (or created).
         """
         G = self._G
@@ -452,7 +448,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
         es['htt'] = [min(e['nRBC'] * vrbc / e['volume'],1) for e in es]
         es['htd']= [min(htt2htd(e['htt'], e['diameter'], invivo), 1.0) for e in es]
 
-        self._G=G
+	self._G=G
 
     #--------------------------------------------------------------------------
 
@@ -512,6 +508,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                 G.vs['outflowE']: Index of edge in which the RBC resides.
         """    
         G=self._G
+        eslThickness = self._P.esl_thickness
         #Beginning    
         inEdges=[]
         outEdges=[]
@@ -668,8 +665,6 @@ class LinearSystemHtdTotFixedDTTrack(object):
             del(G['dConnectV'])
         #Every Time Step
         else:
-            print('Vtype reupdated')
-            print('Update_Out_and_inflows')
             if G.es['sign']!=G.es['signOld']:
                 sign=np.array(G.es['sign'])
                 signOld=np.array(G.es['signOld'])
@@ -877,7 +872,6 @@ class LinearSystemHtdTotFixedDTTrack(object):
                             G.vs[vI]['outflowE']=[]
             G['av']=G.vs(av_eq=1).indices
             G['vv']=G.vs(vv_eq=1).indices
-
         stdout.flush()
         if len(G.vs(av_eq=1,degree_gt=1))>0:
             print('BIGERROR av')
@@ -919,8 +913,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
         [conductance] and [conductance*pressure] otherwise, the latter being
         rBCs. This has the advantage that no re-indexing is required as the
         matrices contain all vertices.
-        INPUT: newGraph: Vascular graph in iGraph format to replace the
-                         previous self.G. (Optional, default=None.)
+        INPUT: 
         OUTPUT: A: Matrix A of the linear system, holding the conductance
                    information.
                 b: Vector b of the linear system, holding the boundary
@@ -1022,9 +1015,12 @@ class LinearSystemHtdTotFixedDTTrack(object):
         edgeList=G.es[edgeList0]
         RBCindexCurrent = self._RBCindexCurrent
         #Edges are sorted based on the pressure at the outlet
+        #pOut=[G.vs[e['target']]['pressure'] if e['sign'] == 1.0 else G.vs[e['source']]['pressure']
+        #    for e in edgeList]
+        #sortedE=zip(pOut,edgeList0)
         pOut=[G.vs[e['target']]['pressure'] if e['sign'] == 1.0 else G.vs[e['source']]['pressure']
-            for e in edgeList]
-        sortedE=zip(pOut,edgeList0)
+            for e in G.es]
+        sortedE=zip(pOut,range(G.ecount()))
         sortedE.sort()
         sortedE=[i[1] for i in sortedE]
         convEdges2=[0]*G.ecount()
@@ -1054,8 +1050,6 @@ class LinearSystemHtdTotFixedDTTrack(object):
                 #If RBCs are present move all RBCs
                 if len(e['rRBC']) > 0:
                     e['rRBC'] = e['rRBC'] + e['v'] * dt * e['sign']
-                    #Deal with bifurcation events and overshoots in every edge
-                    #bifRBCsIndes - array with overshooting RBCs from smallest to largest index
                     bifRBCsIndex=[]
                     nRBC=len(e['rRBC'])
                     if sign == 1.0:
@@ -1102,7 +1096,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                         outE=G.vs[vi]['outflowE'][0]
                         oe=G.es[outE]
                         #Calculate possible number of bifurcation Events
-			#distToFirst = distance to first vertex in vessel
+			            #distToFirst = distance to first vertex in vessel
                         if len(oe['rRBC']) > 0:
                             distToFirst=oe['rRBC'][0] if oe['sign'] == 1.0 else oe['length']-oe['rRBC'][-1]
                         else:
@@ -1110,7 +1104,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                         #Check how many RBCs fit into the new Vessel
                         posNoBifEvents=int(np.floor(distToFirst/oe['minDist']))
                         #Check how many RBCs are allowed by nMax --> limitation results from np.floor(length/minDist) 
-			#and that RBCs are only 'half' in the vessel 
+			            #and that RBCs are only 'half' in the vessel 
                         if posNoBifEvents + len(oe['rRBC']) > oe['nMax']:
                             posNoBifEvents = int(oe['nMax'] - len(oe['rRBC']))
                         #OvershootsNo: compare posNoBifEvents with noBifEvents
@@ -1122,12 +1116,12 @@ class LinearSystemHtdTotFixedDTTrack(object):
                             posBifRBCsIndex=[]
                             overshootsNo=0
                         else:
-                            posBifRBCsIndex=[bifRBCsIndex[-posNoBifEvents::] if sign == 1.0 \
-                                else bifRBCsIndex[:posNoBifEvents]]
+                            posBifRBCsIndex=bifRBCsIndex[-posNoBifEvents::] if sign == 1.0 \
+                                else bifRBCsIndex[:posNoBifEvents]
                             overshootsNo=posNoBifEvents
                         if overshootsNo > 0:
                             #overshootsDist --> array with the distances which the RBCs overshoot, 
-			    #starts wiht the RBC which overshoots the least 
+			                #starts wiht the RBC which overshoots the least 
                             overshootDist=e['rRBC'][posBifRBCsIndex]-[e['length']]*overshootsNo if sign == 1.0 \
                                 else [0]*overshootsNo-e['rRBC'][posBifRBCsIndex]
                             if sign != 1.0:
@@ -1140,7 +1134,6 @@ class LinearSystemHtdTotFixedDTTrack(object):
                             if len(oe['rRBC']) == 0:
                                 if position[-1] > oe['length']:
                                     position = np.array(position)-np.array([position[-1]-oe['length']]*len(position))
-                            #Check if the RBCs overshoots RBCs present in the outflow vesse
                             else:
                                 if oe['sign'] == 1 and position[-1] > oe['rRBC'][0]-oe['minDist']:
                                     posLead=position[-1]
@@ -1186,6 +1179,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                 RBCindex = []
                             else:
                                 position=position[-1*overshootsNo::]
+                            #Add rbcs to new Edge
                             if overshootsNo > 0:
                                 if e['sign'] == 1.0:
                                     RBCindex=e['RBCindex'][-overshootsNo::]
@@ -1201,7 +1195,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                     position = [oe['length']]*overshootsNo - position[::-1]
                                     oe['rRBC']=np.concatenate([oe['rRBC'],position])
                                     oe['RBCindex']=np.concatenate([oe['RBCindex'],RBCindex[::-1]])
-                                #Remove RBCs from old Edge
+                            #Remove RBCs from old Edge
                                 if sign == 1.0:
                                     e['rRBC']=e['rRBC'][:-overshootsNo]
                                     e['RBCindex']=e['RBCindex'][:-overshootsNo]
@@ -1264,7 +1258,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                 ratio1 = Physiol.phase_separation_effect(G.es[preferenceList[0]]['flow']/e['flow'], \
                                     G.es[preferenceList[0]]['diameter'],G.es[preferenceList[1]]['diameter'],e['diameter'],e['htd'])
                                 ratio2 = 1.0 -  ratio1
-                                ratio3 = 0 
+                                ratio3 = 0
                         #Define prefered OutEdges based on bifurcation rule
                         outEPref=preferenceList[0]
                         outEPref2=preferenceList[1]
@@ -1293,16 +1287,16 @@ class LinearSystemHtdTotFixedDTTrack(object):
                             else:
                                 distToFirst3=oe3['length']
                         #Check how many RBCs are allowed by nMax for outEPref
-                        posNoBifEventsPref=np.floor(distToFirst/oe['minDist'])
+                        posNoBifEventsPref=int(np.floor(distToFirst/oe['minDist']))
                         if posNoBifEventsPref + len(oe['rRBC']) > oe['nMax']:
                             posNoBifEventsPref = oe['nMax'] - len(oe['rRBC'])
                         #Check how many RBCs are allowed by nMax for outEPref2
-                        posNoBifEventsPref2=np.floor(distToFirst2/oe2['minDist'])
+                        posNoBifEventsPref2=int(np.floor(distToFirst2/oe2['minDist']))
                         if posNoBifEventsPref2 + len(oe2['rRBC']) > oe2['nMax']:
                             posNoBifEventsPref2 = oe2['nMax'] - len(oe2['rRBC'])
                         #Check how many RBCs are allowed by nMax for outEPref3
                         if boolTrifurcation:
-                            posNoBifEventsPref3=np.floor(distToFirst3/oe3['minDist'])
+                            posNoBifEventsPref3=int(np.floor(distToFirst3/oe3['minDist']))
                             if posNoBifEventsPref3 + len(oe3['rRBC']) > oe3['nMax']:
                                 posNoBifEventsPref3 = oe3['nMax'] - len(oe3['rRBC'])
                         else:
@@ -1324,7 +1318,8 @@ class LinearSystemHtdTotFixedDTTrack(object):
                             if not boolTrifurcation:
                                 if ratio1 != 0 and overshootsNo != 0:
                                     def errorDistributeRBCs(n1):
-                                        return n1/float(overshootsNo)-ratio1
+                                        #return n1/float(overshootsNo)-ratio1 #OLD Formulation
+                                        return (n1+oe['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+overshootsNo)-ratio1
                                     resultMinimizeError = root(errorDistributeRBCs,np.ceil(ratio1 * overshootsNo))
                                     overshootsNo1=int(np.round(resultMinimizeError['x']))
                                 else:
@@ -1337,19 +1332,23 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                     overshootsNo2=0
                                 elif ratio1 != 0 and ratio2 != 0 and overshootsNo != 0:
                                     def errorDistributeRBCs(n12):
-                                        return [n12[0]/float(overshootsNo)-ratio1,n12[1]/float(overshootsNo)-ratio2]
+                                        #return [n12[0]/float(overshootsNo)-ratio1,n12[1]/float(overshootsNo)-ratio2] #OLD Formulation
+                                        return [(n12[0]+oe['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+oe3['countRBCs']+overshootsNo)-ratio1, \
+                                                (n12[1]+oe2['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+oe3['countRBCs']+overshootsNo)-ratio2]
                                     resultMinimizeError = root(errorDistributeRBCs,[np.ceil(ratio1 * overshootsNo),np.ceil(ratio2 * overshootsNo)])
                                     overshootsNo1=int(np.round(resultMinimizeError['x'][0]))
                                     overshootsNo2=int(np.round(resultMinimizeError['x'][1]))
                                 elif ratio1 != 0 and overshootsNo != 0:
                                     def errorDistributeRBCs(n1):
-                                        return n1/float(overshootsNo)-ratio1
+                                        #return n1/float(overshootsNo)-ratio1 #OLD Formulation
+                                        return (n1+oe['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+oe3['countRBCs']+overshootsNo)-ratio1
                                     resultMinimizeError = root(errorDistributeRBCs,np.ceil(ratio1 * overshootsNo))
                                     overshootsNo1=int(np.round(resultMinimizeError['x']))
                                     overshootsNo2=0
                                 elif ratio2 != 0 and overshootsNo != 0:
                                     def errorDistributeRBCs(n2):
-                                        return n2/float(overshootsNo)-ratio2
+                                        #return n2/float(overshootsNo)-ratio2 #OLD Formulation
+                                        return (n2+oe2['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+oe3['countRBCs']+overshootsNo)-ratio2
                                     resultMinimizeError = root(errorDistributeRBCs,np.ceil(ratio2 * overshootsNo))
                                     overshootsNo2=int(np.round(resultMinimizeError['x']))
                                     overshootsNo1=0
@@ -1406,8 +1405,8 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                 overshootsNo3 = posNoBifEventsPref3
                             overshootsNo = int(overshootsNo1 + overshootsNo2 + overshootsNo3)
                             posNoBifEvents = overshootsNo
-                            posBifRBCsIndex=posBifRBCsIndex[-posNoBifEvents::] if sign == 1.0 \
-                                else posBifRBCsIndex[:posNoBifEvents]
+                            posBifRBCsIndex=bifRBCsIndex[-posNoBifEvents::] if sign == 1.0 \
+                                else bifRBCsIndex[:posNoBifEvents]
                         if overshootsNo > 0:
                             #overshootDist starts with the RBC which overshoots the least
                             overshootDist=e['rRBC'][posBifRBCsIndex]-[e['length']]*overshootsNo if sign == 1.0 \
@@ -1726,6 +1725,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                 last = 2
                                             else:
                                                 print('BIGERROR all overshootRBCS should fit')
+                                    # make sure that distance between adjacent RBCs is large enough
                                     if last == 1:
                                         if len(positionPref1) >= 2:
                                             if oe['sign'] == 1:
@@ -1961,18 +1961,16 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                     position1[index1]=positionPref1[-1]-oe['minDist']
                                                                                     if position1[index1] > 0:
                                                                                         positionPref1.append(position1[index1])
-                                                                                        counterPref1.append(index)
                                                                                         countPref1 += 1
                                                                                     else:
-                                                                                        print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 1')
+                                                                                        print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 1')
                                                                                 else:
                                                                                     position1[index1]=positionPref1[-1]+oe['minDist']
                                                                                     if position1[index1] < oe['length']:
                                                                                         positionPref1.append(position1[index1])
-                                                                                        counterPref1.append(index)
                                                                                         countPref1 += 1
                                                                                     else:
-                                                                                        print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 2')
+                                                                                        print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 2')
                                                                             elif newOutEdge == 2:
                                                                                 if oe2['sign'] == 1.0:
                                                                                     position2[index2]=positionPref2[-1]-oe2['minDist']
@@ -1981,7 +1979,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                         counterPref2.append(index)
                                                                                         countPref2 += 1
                                                                                     else:
-                                                                                        print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 3')
+                                                                                        print('WARNING PROPAGATE  RBC has been pushed outside SHOULD NOT HAPPEN 3')
                                                                                 else:
                                                                                     position2[index2]=positionPref2[-1]+oe2['minDist']
                                                                                     if position2[index2] < oe2['length']:
@@ -1989,7 +1987,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                         counterPref2.append(index)
                                                                                         countPref2 += 1
                                                                                     else:
-                                                                                        print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 4')
+                                                                                        print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 4')
                                                                             elif newOutEdge == 3:
                                                                                 if oe3['sign'] == 1.0:
                                                                                     position3[index3]=positionPref3[-1]-oe3['minDist']
@@ -1998,7 +1996,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                         counterPref3.append(index)
                                                                                         countPref3 += 1
                                                                                     else:
-                                                                                        print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 5')
+                                                                                        print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 5')
                                                                                 else:
                                                                                     position3[index3]=positionPref3[-1]+oe3['minDist']
                                                                                     if position3[index3] < oe3['length']:
@@ -2006,7 +2004,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                         counterPref3.append(index)
                                                                                         countPref3 += 1
                                                                                     else:
-                                                                                        print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 6')
+                                                                                        print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 6')
                                                                         #There is enough space in outEdge 3
                                                                         else:
                                                                             positionPref3.append(position3[index3])
@@ -2076,7 +2074,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                 counterPref1.append(index)
                                                                                 countPref1 += 1
                                                                             else:
-                                                                                print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 7')
+                                                                                print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 7')
                                                                         else:
                                                                             position1[index1]=positionPref1[-1]+oe['minDist']
                                                                             if position1[index1] < oe['length']:
@@ -2084,7 +2082,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                 counterPref1.append(index)
                                                                                 countPref1 += 1
                                                                             else:
-                                                                                print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 8')
+                                                                                print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 8')
                                                                     elif newOutEdge == 2:
                                                                         if oe2['sign'] == 1.0:
                                                                             position2[index2]=positionPref2[-1]-oe2['minDist']
@@ -2093,7 +2091,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                 counterPref2.append(index)
                                                                                 countPref2 += 1
                                                                             else:
-                                                                                print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 9')
+                                                                                print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 9')
                                                                         else:
                                                                             position2[index2]=positionPref2[-1]+oe2['minDist']
                                                                             if position2[index2] < oe2['length']:
@@ -2101,7 +2099,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                 counterPref2.append(index)
                                                                                 countPref2 += 1
                                                                             else:
-                                                                                print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 10')
+                                                                                print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 10')
                                                             #There is no third outEdge, therefore it is checked in which edge the RBC is blocked
                                                             #the shortest time
                                                             else:
@@ -2141,7 +2139,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                             counterPref1.append(index)
                                                                             countPref1 += 1
                                                                         else:
-                                                                            print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 11')
+                                                                            print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 11')
                                                                     else:
                                                                         position1[index1]=positionPref1[-1]+oe['minDist']
                                                                         if position1[index1] < oe['length']:
@@ -2149,7 +2147,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                             counterPref1.append(index)
                                                                             countPref1 += 1
                                                                         else:
-                                                                            print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 12')
+                                                                            print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 12')
                                                                 elif newOutEdge == 2:
                                                                     if oe2['sign'] == 1.0:
                                                                         position2[index2]=positionPref2[-1]-oe2['minDist']
@@ -2158,7 +2156,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                             counterPref2.append(index)
                                                                             countPref2 += 1
                                                                         else:
-                                                                            print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 13')
+                                                                            print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 13')
                                                                     else:
                                                                         position2[index2]=positionPref2[-1]+oe2['minDist']
                                                                         if position2[index2] < oe2['length']:
@@ -2166,7 +2164,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                             counterPref2.append(index)
                                                                             countPref2 += 1
                                                                         else:
-                                                                            print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 14')
+                                                                            print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 14')
                                                         #there is enough space for the RBC in outEPref2
                                                         else:
                                                             positionPref2.append(position2[index2])
@@ -2243,7 +2241,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                 counterPref1.append(index)
                                                                                 countPref1 += 1
                                                                             else:
-                                                                                print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN! 15')
+                                                                                print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN! 15')
                                                                         else:
                                                                             position1[index1]=positionPref1[-1]+oe['minDist']
                                                                             if position1[index1] < oe['length']:
@@ -2251,7 +2249,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                 counterPref1.append(index)
                                                                                 countPref1 += 1
                                                                             else:
-                                                                                print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN! 16')
+                                                                                print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN! 16')
                                                                     elif newOutEdge == 3:
                                                                         if oe3['sign'] == 1.0:
                                                                             position3[index3]=positionPref3[-1]-oe3['minDist']
@@ -2260,7 +2258,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                 counterPref3.append(index)
                                                                                 countPref3 += 1
                                                                             else:
-                                                                                print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN! 17')
+                                                                                print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN! 17')
                                                                         else:
                                                                             position3[index3]=positionPref3[-1]+oe3['minDist']
                                                                             if position3[index3] < oe3['length']:
@@ -2268,7 +2266,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                 counterPref3.append(index)
                                                                                 countPref3 += 1
                                                                             else:
-                                                                                print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 18')
+                                                                                print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 18')
                                                                 #There is enough space in outEdge 3
                                                                 else:
                                                                     positionPref3.append(position3[index3])
@@ -2424,7 +2422,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                             counterPref2.append(index)
                                                                             countPref2 += 1
                                                                         else:
-                                                                            print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 19')
+                                                                            print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 19')
                                                                     else:
                                                                         position2[index2]=positionPref2[-1]+oe2['minDist']
                                                                         if position2[index2] < oe2['length']:
@@ -2432,7 +2430,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                             counterPref2.append(index)
                                                                             countPref2 += 1
                                                                         else:
-                                                                            print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 20')
+                                                                            print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 20')
                                                                 elif newOutEdge == 3:
                                                                     if oe3['sign'] == 1.0:
                                                                         position3[index3]=positionPref3[-1]-oe3['minDist']
@@ -2441,7 +2439,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                             counterPref3.append(index)
                                                                             countPref3 += 1
                                                                         else:
-                                                                            print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 21')
+                                                                            print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 21')
                                                                     else:
                                                                         position3[index3]=positionPref3[-1]+oe3['minDist']
                                                                         if position3[index3] < oe3['length']:
@@ -2449,7 +2447,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                             counterPref3.append(index)
                                                                             countPref3 += 1
                                                                         else:
-                                                                            print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 22')
+                                                                            print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 22')
                                                             #There is enough space in outEdge 3
                                                             else:
                                                                 positionPref3.append(position3[index3])
@@ -2693,7 +2691,6 @@ class LinearSystemHtdTotFixedDTTrack(object):
     #-------------------------------------------------------------------------------------------
                 #if vertex is convergent vertex
                     elif G.vs[vi]['vType'] == 4:
-                        #print('at convergent')
                         boolTrifurcation = 0
                         bifRBCsIndex1=bifRBCsIndex
                         noBifEvents1=noBifEvents
@@ -2869,16 +2866,31 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                 if position[i]-position[i-1] < oe['minDist'] or \
                                     position[i-1] > position[i]:
                                     position[i-1]=position[i]-oe['minDist']
-                                    #if first RBC did not yet move enough less than the possible no of RBCs fit into the outEdge
-                                    if position[i-1] < 0:
-                                        if inEdge[i-1] == 1:
-                                            count1 += -1
-                                        elif inEdge[i-1] == 2:
-                                            count2 += -1
-                                        elif inEdge[i-1] == 3:
-                                            count3 += -1
-                            position=position[-1*(count1+count2+count3)::]
-                            inEdge=inEdge[-1*(count1+count2+count3)::]
+                            #if first RBC did not yet move enough less than the possible no of RBCs fit into the outEdge
+                            allCounts=count1+count2+count3
+                            for i in xrange(allCounts):
+                                if position[i] < 0:
+                                    if inEdge[i] == 1:
+                                        count1 += -1
+                                    elif inEdge[i] == 2:
+                                        count2 += -1
+                                    elif inEdge[i] == 3:
+                                        count3 += -1
+                                else:
+                                    break
+                            if len(position) != len(position[i::]):
+                                position=position[i::]
+                                inEdge=inEdge[i::]
+                            #        #if first RBC did not yet move enough less than the possible no of RBCs fit into the outEdge
+                            #        if position[i-1] < 0:
+                            #            if inEdge[i-1] == 1:
+                            #                count1 += -1
+                            #            elif inEdge[i-1] == 2:
+                            #                count2 += -1
+                            #            elif inEdge[i-1] == 3:
+                            #                count3 += -1
+                            #position=position[-1*(count1+count2+count3)::]
+                            #inEdge=inEdge[-1*(count1+count2+count3)::]
                             #Add rbcs to outE 
                             RBCindex=[]
                             index=[0,0,0]
@@ -3099,10 +3111,10 @@ class LinearSystemHtdTotFixedDTTrack(object):
                         else:
                             distToFirst2=oe2['length']
                         #Check how many RBCs are allowed by nMax
-                        posNoBifEventsPref=np.floor(distToFirst/oe['minDist'])
+                        posNoBifEventsPref=int(np.floor(distToFirst/oe['minDist']))
                         if posNoBifEventsPref + len(oe['rRBC']) > oe['nMax']:
                             posNoBifEventsPref = oe['nMax'] - len(oe['rRBC'])
-                        posNoBifEventsPref2=np.floor(distToFirst2/oe2['minDist'])
+                        posNoBifEventsPref2=int(np.floor(distToFirst2/oe2['minDist']))
                         if posNoBifEventsPref2 + len(oe2['rRBC']) > oe2['nMax']:
                             posNoBifEventsPref2 = oe2['nMax'] - len(oe2['rRBC'])
                         #Check how many RBCs fit into the new Vessel
@@ -3112,7 +3124,8 @@ class LinearSystemHtdTotFixedDTTrack(object):
                         if nonCap:
                             if ratio1 != 0 and overshootsNo != 0:
                                 def errorDistributeRBCs(n1):
-                                    return n1/float(overshootsNo)-ratio1
+                                    #return n1/float(overshootsNo)-ratio1 #OLD Formulation
+                                    return (n1+oe['countRBCs'])/float(oe['countRBCs']+oe2['countRBCs']+overshootsNo)-ratio1
                                 resultMinimizeError = root(errorDistributeRBCs,np.ceil(ratio1 * overshootsNo))
                                 overshootsNo1=int(np.round(resultMinimizeError['x']))
                             else:
@@ -3191,12 +3204,12 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                 countNo2=0
                                 count1 = 0
                                 count2 = 0
-                                positionPref2=[]
-                                positionPref1=[]
                                 inEPref1=[]
                                 inEPref2=[]
                                 indexPref1=[]
                                 indexPref2=[]
+                                positionPref2=[]
+                                positionPref1=[]
                                 last=2
                                 for i in xrange(overshootsNo):
                                     index=-1*(i+1)
@@ -3441,8 +3454,8 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                 countPref2=0
                                 pref1Full = 0
                                 pref2Full = 0
-		                count1 = 0
-		                count2 = 0
+                                count1 = 0
+                                count2 = 0
                                 #Loop over all movable RBCs
                                 for i in xrange(overshootsNo):
                                     index=-1*(i+1)
@@ -3506,7 +3519,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                         elif inEdge[index] == 2:
                                                                             count2 += 1
                                                                     else:
-                                                                        print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 23')
+                                                                        print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 23')
                                                                 else:
                                                                     position1[index1]=positionPref1[-1]+oe['minDist']
                                                                     if position1[index1] < oe['length']:
@@ -3519,7 +3532,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                         elif inEdge[index] == 2:
                                                                             count2 += 1
                                                                     else:
-                                                                        print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 24')
+                                                                        print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 24')
                                                             elif newOutEdge == 2:
                                                                 if oe2['sign'] == 1.0:
                                                                     position2[index2]=positionPref2[-1]-oe2['minDist']
@@ -3533,7 +3546,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                         elif inEdge[index] == 2:
                                                                             count2 += 1
                                                                     else:
-                                                                        print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 25')
+                                                                        print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 25')
                                                                 else:
                                                                     position2[index2]=positionPref2[-1]+oe2['minDist']
                                                                     if position2[index2] < oe2['length']:
@@ -3546,7 +3559,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                         elif inEdge[index] == 2:
                                                                             count2 += 1
                                                                     else:
-                                                                        print('WARNING RBC has been pushed outside SHOULD NOT HAPPEN 26')
+                                                                        print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 26')
                                                         #there is enough space for the RBC in outEPref2
                                                         else:
                                                             positionPref2.append(position2[index2])
@@ -3719,7 +3732,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                     #There is no more space for further RBCs
                                     else:
                                         break
-                                #Add rbcs to outEPref
+                            #Add rbcs to outEPref
                                 if countPref2+countPref1 != overshootsNo:
                                     overshootsNo = countPref2+countPref1
                             #Define RBC index
@@ -4145,6 +4158,9 @@ class LinearSystemHtdTotFixedDTTrack(object):
                             print('BIGERROR BEGINNING END')
                         if edge['rRBC'][0] < 0 - eps or edge['rRBC'][-1] > edge['length'] + eps:
                             print('BIGERROR BEGINNING END 2')
+                    for j in xrange(len(edge['rRBC'])-1):
+                        if edge['rRBC'][j] > edge['rRBC'][j+1] or edge['rRBC'][j+1]-edge['rRBC'][j] < edge['minDist']-100*eps:
+                            print('BIGERROR BEGINNING END 3')
             if overshootsNo != 0:
                 vertexUpdate.append(e['target'])
                 vertexUpdate.append(e['source'])
@@ -4154,17 +4170,14 @@ class LinearSystemHtdTotFixedDTTrack(object):
                     for i in e['rRBC']:
                         if i < 0 or i > e['length']:
                             print('BIGERROREND')
-                            print('LOOK2 HTTBC Edge')
                 if boolHttEdge2:
                     for i in e2['rRBC']:
                         if i < 0 or i > e2['length']:
                             print('BIGERROREND')
-                            print('LOOK2 HTTBC Edge 2')
                 if boolHttEdge3:
                     for i in e3['rRBC']:
                         if i < 0 or i > e3['length']:
                             print('BIGERROREND')
-                            print('LOOK2 HTTBC Edge 3')
                 if self._analyzeBifEvents:
                     if G.vs['vType'][vi] == 3 or G.vs['vType'][vi] == 5:
                         rbcMoved += overshootsNo
@@ -4347,9 +4360,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
         filenamelist = self._filenamelist
         self._dt=dtfix
         timelist = self._timelist
-	#filenamelistAvg = self._filenamelistAvg
 	timelistAvg = self._timelistAvg
-
         init=self._init
 
         SampleDetailed=False
@@ -4509,6 +4520,8 @@ class LinearSystemHtdTotFixedDTTrack(object):
                         vgm.write_pkl(self._RBCdict,'RBCdict_BackUp'+str(BackUpCounter)+'.pkl')
                         vgm.write_pkl(self._flowdict,'flowdict_BackUp'+str(BackUpCounter)+'.pkl')
                         vgm.write_pkl(G,filename2)
+                        if BackUpCounter >= 2:
+                            os.remove('G_BackUp'+str(BackUpCounter-2)+'.pkl')
                         self._sampledict = {}
                         self._RBCdict = {}
                         self._flowdict = {}
@@ -4626,7 +4639,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                 #points = e['points']
                 #nPoints = len(points)
                 rsource = G.vs[e['source']]['r']
-                dvec = G.vs[e.target]['r'] - G.vs[e['source']]['r']
+                dvec = G.vs[e['target']]['r'] - G.vs[e['source']]['r']
                 length = e['length']
                 for rRBC in e['rRBC']:
                     #index = int(round(npoints * rRBC / length))
@@ -4734,17 +4747,19 @@ class LinearSystemHtdTotFixedDTTrack(object):
             #PC = AA.aspreconditioner(cycle='V')
             #x,info = linalg.cg(A, self._b, tol=eps, maxiter=30, M=PC)
             #(x,flag) = pyamg.krylov.fgmres(A,self._b, maxiter=30, tol=eps)
-            x = abs(AA.solve(self._b, tol=self._eps/10000000000000000000, accel='cg')) # abs required, as (small) negative pressures may arise
+            #x = abs(AA.solve(self._b, tol=self._eps/10000000000000000000, accel='cg')) # abs required, as (small) negative pressures may arise
+            x = abs(AA.solve(self._b, tol=self._eps/10000000, accel='cg')) # abs required, as (small) negative pressures may arise
         elif method == 'iterative2':
          # Set linear solver
              ml = rootnode_solver(A, smooth=('energy', {'degree':2}), strength='evolution' )
              M = ml.aspreconditioner(cycle='V')
              # Solve pressure system
-             #x,info = gmres(A, self._b, tol=self._eps, maxiter=50, M=M, x0=self._x)
-             #x,info = gmres(A, self._b, tol=self._eps/10000000000000, maxiter=50, M=M)
-             x,info = gmres(A, self._b, tol=self._eps/10000000000000, maxiter=50, M=M)
+             #counter=gmres_counter()
+             #x,info = gmres(A, self._b, tol=self._eps/10000, maxiter=200, M=M,callback=counter)
+             x,info = gmres(A, self._b, tol=self._eps/10000, maxiter=200, M=M)
              if info != 0:
                  print('SOLVEERROR in Solving the Matrix')
+                 print(info)
              test = A * x
              res = np.array(test)-np.array(self._b)
         self._x = x
@@ -4764,7 +4779,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                for e, n in zip(G.adjacent(v), G.neighbors(v))])
                            for v in xrange(G.vcount())]
         for i in xrange(G.vcount()):
-            if G.vs[i]['flowSum'] > 1e-4 and i not in G['av'] and i not in G['vv']:
+            if G.vs[i]['flowSum'] > 5e-4 and i not in G['av'] and i not in G['vv']:
                 print('')
                 print(i)
                 print(G.vs['flowSum'][i])
@@ -4798,7 +4813,6 @@ class LinearSystemHtdTotFixedDTTrack(object):
         INPUT: None.
         OUTPUT: A list of local pressure maxima vertices and the maximum 
                 pressure difference to their respective neighbors."""
-
         G = self._G
         localMaxima = []
         #Convert 'pBC' ['mmHG'] to default Units
