@@ -224,7 +224,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                     G.es[G.adjacent(i)[0]]['httBC_init']=httBCValue
 
         # Assign initial RBC positions:
-	if init:
+    	if init:
             if 'ht0' not in kwargs.keys():
                 print('ERROR no inital tube hematocrit given for distribution of RBCs')
             else:
@@ -254,7 +254,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
             penetratingA=[]
 
         if penetratingA==[]:
-            print('ERROR a list of inlets should be given from where the tracking is to be started')
+            sys.exit('ERROR a list of inlets should be given from where the tracking is to be started')
 
         self._penetratingA=penetratingA
         if initTrack:
@@ -1961,6 +1961,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                     position1[index1]=positionPref1[-1]-oe['minDist']
                                                                                     if position1[index1] > 0:
                                                                                         positionPref1.append(position1[index1])
+                                                                                        counterPref1.append(index)
                                                                                         countPref1 += 1
                                                                                     else:
                                                                                         print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 1')
@@ -1968,6 +1969,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                                                     position1[index1]=positionPref1[-1]+oe['minDist']
                                                                                     if position1[index1] < oe['length']:
                                                                                         positionPref1.append(position1[index1])
+                                                                                        counterPref1.append(index)
                                                                                         countPref1 += 1
                                                                                     else:
                                                                                         print('WARNING PROPAGATE RBC has been pushed outside SHOULD NOT HAPPEN 2')
@@ -2194,7 +2196,7 @@ class LinearSystemHtdTotFixedDTTrack(object):
                                                         counterPref2.append(index)
                                                         countPref2 += 1
                                                 #There is no space in the second outEdge
-					        #Check if there is a third outEdge
+					                            #Check if there is a third outEdge
                                                 else:
                                                     if boolTrifurcation:
                                                         #check if RBC still fits into outEPref3
