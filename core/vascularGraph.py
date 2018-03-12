@@ -800,7 +800,7 @@ class VascularGraph(Graph):
             
     #--------------------------------------------------------------------------                         
                          
-    def split_edge_relDist(self, eIndex, relDist, deleteOldEdge=True):
+    def split_edge_relDist(self, eIndex, relDist, species, deleteOldEdge=True):
         """Splits an edge in two by introducing an additional vertex.
         Points need to be present in the graph. Introduces further points if necessary.
         If pressure values are present, pressure value assigned at new vertex. If RBCs are present
@@ -817,6 +817,8 @@ class VascularGraph(Graph):
                               split instead.
         OUTPUT: None
         """
+        P=vgm.Physiology(self['defaultUnits'])
+        vrbc=P.rbc_volume(species)
         eps = finfo(float).eps * 1e4
         newVertex = self.vcount()
         source = self.es[eIndex].source
@@ -1017,32 +1019,45 @@ class VascularGraph(Graph):
         self.es[newEdges[1]]['lengths']=lengths
 
         #Deal with RBCs if present
+        boolBreak=0
         if 'rRBC' in self.es.attribute_names():
             if 'nRBC' in self.es.attribute_names():
                 if len(self.es['rRBC'][eIndex]) > 0:
                     for i in range(len(self.es['rRBC'][eIndex])):
                         if self.es[eIndex]['rRBC'][i] > self.es[newEdges[0]]['length']:
-                            self.es[newEdges[0]]['rRBC']=self.es[eIndex]['rRBC'][0:i-1]
+                            self.es[newEdges[0]]['rRBC']=self.es[eIndex]['rRBC'][0:i]
+                            boolBreak = 1
                             break
-                    if i == len(self.es['rRBC'][eIndex])-1:
+                    if i == len(self.es['rRBC'][eIndex])-1 and boolBreak == 0:
                         self.es[newEdges[0]]['rRBC']=self.es[eIndex]['rRBC']
                         self.es[newEdges[1]]['rRBC']=[]
                     else:
                         self.es[newEdges[1]]['rRBC']=np.array(self.es[eIndex]['rRBC'][i::])-np.array([self.es[newEdges[0]]['length']]*len(self.es[eIndex]['rRBC'][i::]))
+                        self.es[newEdges[1]]['rRBC']=self.es[newEdges[1]]['length']-self.es[newEdges[1]]['rRBC'][::-1]
                 else:
-		    self.es[newEdges[0]]['rRBC']=[]
+                    self.es[newEdges[0]]['rRBC']=[]
                     self.es[newEdges[1]]['rRBC']=[]
                 self.es[newEdges[0]]['nRBC']=len(self.es[newEdges[0]]['rRBC'])
                 self.es[newEdges[1]]['nRBC']=len(self.es[newEdges[1]]['rRBC'])
                 self.es[newEdges[0]]['nRBC_avg']=len(self.es[newEdges[0]]['rRBC'])
                 self.es[newEdges[1]]['nRBC_avg']=len(self.es[newEdges[1]]['rRBC'])
            
+        if 'minDist' in self.es.attribute_names():
+            self.es[newEdges[0]]['minDist']=vrbc / (0.25*np.pi * self.es[newEdges[0]]['diameter']**2)
+            self.es[newEdges[1]]['minDist']=vrbc / (0.25*np.pi * self.es[newEdges[1]]['diameter']**2)
+
+        if 'nMax' in self.es.attribute_names():
+            self.es[newEdges[0]]['nMax'] = np.floor(self.es[newEdges[0]]['length']/ self.es[newEdges[0]]['minDist'])
+            self.es[newEdges[1]]['nMax'] = np.floor(self.es[newEdges[1]]['length']/ self.es[newEdges[1]]['minDist'])
 
         attr = self.es.attribute_names()
         for a in attr:
-            if a not in ('length', 'lengths', 'diameter', 'diameters', 'points','nRBC','nRBC_avg','rRBC','lengths2','diameters2',''):
+            if a not in ('length', 'lengths', 'diameter', 'diameters', 'points','nRBC','nRBC_avg','rRBC','lengths2','diameters2','minDist','nMax'):
                 self.es[newEdges[0]][a] = self.es[eIndex][a]
-                self.es[newEdges[1]][a] = self.es[eIndex][a]
+                if a == 'sign':
+                    self.es[newEdges[1]][a] = -1*self.es[eIndex][a]
+                else:
+                    self.es[newEdges[1]][a] = self.es[eIndex][a]
 
         attr = self.vs.attribute_names()
         for a in attr:
