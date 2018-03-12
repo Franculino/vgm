@@ -1,0 +1,13 @@
+site packages required:
+quantities
+python-igraph
+pyamg
+sympy
+
+clone from github
+
+python setup.py build
+
+cp build/lib.XYZXYZ/vgm/core/*.so core/
+
+Adjust PYTHONPATH
