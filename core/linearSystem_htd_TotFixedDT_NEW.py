@@ -776,9 +776,6 @@ class LinearSystemHtdTotFixedDT_NEW(object):
                                 if self._innerDiam:
                                     LDValue = httBCValue
                                 else:
-                                    print('httBCValue')
-                                    print(httBCValue)
-                                    print(edgeVI)
                                     LDValue = httBCValue*(G.es[edgeVI]['diameter']/(G.es[edgeVI]['diameter']-2*eslThickness(G.es[edgeVI]['diameter'])))**2
                                 logNormalMu,logNormalSigma = self._compute_mu_sigma_inlet_RBC_distribution(LDValue)
                                 G.es[edgeVI]['logNormal'] = [logNormalMu,logNormalSigma]
@@ -828,7 +825,6 @@ class LinearSystemHtdTotFixedDT_NEW(object):
                             G.es[noFlowEdges]['noFlow'] = [1]*len(noFlowEdges)
                             G.vs[vI]['inflowE'] = []
                             G.vs[vI]['outflowE'] = []
-
             G['av'] = G.vs(av_eq=1).indices
             G['vv'] = G.vs(vv_eq=1).indices
         stdout.flush()
@@ -878,7 +874,6 @@ class LinearSystemHtdTotFixedDT_NEW(object):
                 b: Vector b of the linear system, holding the boundary
                    conditions.
         """
-
 
         G = self._G
         P = self._P
@@ -2422,6 +2417,8 @@ class LinearSystemHtdTotFixedDT_NEW(object):
                             v['pressure'] = v['pressure']/self._scaleToDef
                         g_output.write_pkl(self._sampledict,filename1)
                         vgm.write_pkl(G,filename2)
+                        if BackUpCounter >= 2:
+                            os.remove('G_BackUp'+str(BackUpCounter-2)+'.pkl')
                         self._sampledict = {}
                         self._sampledict['averagedCount'] = G['averagedCount']
                         #Convert 'pBC' ['mmHG'] to default Units
@@ -2495,9 +2492,7 @@ class LinearSystemHtdTotFixedDT_NEW(object):
                     v['pBC'] = v['pBC']/self._scaleToDef
                 v['pressure'] = v['pressure']/self._scaleToDef
             self._sample_average()
-            g_output.write_pkl(self._sampledict, 'sampledict.pkl')
             g_output.write_pkl(self._sampledict,filename1)
-        vgm.write_pkl(G, 'G_final.pkl')
         vgm.write_pkl(G,filename2)
 
     #--------------------------------------------------------------------------
@@ -2730,4 +2725,3 @@ class LinearSystemHtdTotFixedDT_NEW(object):
         """Computes the norm of the current residual.
         """
         return np.linalg.norm(self._A * self._x - self._b)
-                

@@ -74,28 +74,28 @@ class LinearSystemHtdTotFixedDT_NEW(object):
         self._G = G
         self._P = Physiology(G['defaultUnits'])
         self._dThreshold = dThreshold
-        self._invivo=invivo
+        self._invivo = invivo
         self._b = zeros(G.vcount())
         self._x = zeros(G.vcount())
-        self._A = lil_matrix((G.vcount(),G.vcount()),dtype=float)
+        self._A = lil_matrix((G.vcount(),G.vcount()),dtype = float)
         self._eps = finfo(float).eps * 1e4
         #TODO those two are changed in evolve. depending if it is restarted or not. it would be more correct to do this here
         self._tPlot = 0.0
         self._tSample = 0.0
         self._filenamelist = []
         self._timelist = []
-	self._timelistAvg = []
+    	self._timelistAvg = []
         self._sampledict = {} 
-	self._init=init
-        self._scaleToDef=vgm.units.scaling_factor_du('mmHg',G['defaultUnits'])
-        self._vertexUpdate=None
-        self._edgeUpdate=None
-        G.es['source']=[e.source for e in G.es]
-        G.es['target']=[e.target for e in G.es]
-        G.es['countRBCs']=[0]*G.ecount()
-        G.es['crosssection']=np.array([0.25*np.pi]*G.ecount())*np.array(G.es['diameter'])**2
-        G.es['volume']=[e['crosssection']*e['length'] for e in G.es]
-        adjacent=[]
+     	self._init=init
+        self._scaleToDef = vgm.units.scaling_factor_du('mmHg',G['defaultUnits'])
+        self._vertexUpdate = None
+        self._edgeUpdate = None
+        G.es['source'] = [e.source for e in G.es]
+        G.es['target'] = [e.target for e in G.es]
+        G.es['countRBCs'] = [0]*G.ecount()
+        G.es['crosssection'] = np.array([0.25*np.pi]*G.ecount())*np.array(G.es['diameter'])**2
+        G.es['volume'] = [e['crosssection']*e['length'] for e in G.es]
+        adjacent = []
         for i in xrange(G.vcount()):
             adjacent.append(G.adjacent(i))
         G.vs['adjacent']=adjacent

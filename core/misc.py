@@ -1,5 +1,6 @@
 from __future__ import division                   
 import vgm
+import cPickle
 import igraph as ig
 import numpy as np
 from pylab import flatten
@@ -19,7 +20,7 @@ from physiology import Physiology
 __all__ = ['add_geometric_edge_properties', 'add_fluiddynamical_properties',
            'vertices_from_coordinates', 'add_kind_and_conductance', 
            'add_conductance', 'edge_property_vs_depth', 'update_lengths',
-           'update_length', 'update_volume', 'update_depth']
+           'update_length', 'update_volume', 'update_depth','exchange_graph_purePython']
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -734,3 +735,36 @@ def assign_edges_to_layers_RBCpathsBased(G,numberOfLayers=5,layerThickness=200,n
         layersNew.append(np.unique(layers[i]).tolist())
 
     return layersNew
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+def exchange_graph_purePython(G,eAttrs=[],vAttrs=[]):
+    """ Adds angle to cortical surface (in degrees), cortical depth, volume and
+    cross section to each edge in the graph.
+    INPUT: G:  Vascular graph in iGraph format.
+            eAttrs: edge attributes which should be stored (default is only the connectivity)
+            vAttrs: vertex attributes which should be stored (default is only the vertex coordinates and the index)
+    OUTPUT: edgesDic, verticesDict.pkl
+    """
+
+    edgesDict={}
+    verticesDict={}
+
+    verticesDict['index']=range(G.vcount())
+    verticesDict['coords']=G.vs['r']
+    for vA in vAttrs:
+        verticesDict[vA]=G.vs[vA]
+
+    connectivity=[]
+    for e in G.es:
+        connectivity.append(e.tuple)
+
+    edgesDict['connectivity']=connectivity
+    for eA in eAttrs:
+        edgesDict[eA]=G.es[eA]
+
+    with open('edgesDict.pkl','wb') as f:
+        cPickle.dump(edgesDict,f,protocol=2)
+
+    with open('verticesDict.pkl','wb') as f:
+        cPickle.dump(verticesDict,f,protocol=2)
+

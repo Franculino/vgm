@@ -9,6 +9,7 @@ from linearSystem_htd_TotFixedDT_withTracking import *
 from linearSystem_htd_TotFixedDT_withTrackingBox import *
 from linearSystem_pries import *
 from misc import *
+from activation_and_barrels import *
 from paths import *
 from physiology import *
 from units import *
@@ -22,6 +23,7 @@ from preprocessingKleinfeldNW import *
 from hierarchicalApproach import *
 from linearSystem_htd_TotFixedDT_noBifRule import *
 from linearSystem_htd_TotFixedDT_passiveTracers import *
+from linearSystem_htd_TotFixedDT_withTracking_passiveTracers import *
 
 import dilation_and_splits
 import g_input
@@ -35,6 +37,7 @@ import linearSystem_htd_TotFixedDT_withTracking
 import linearSystem_htd_TotFixedDT_withTrackingBox
 import linearSystem_pries
 import misc
+import activation_and_barrels
 import paths
 import physiology
 import units
@@ -47,3 +50,4 @@ import preprocessingKleinfeldNW
 import hierarchicalApproach
 import linearSystem_htd_TotFixedDT_noBifRule
 import linearSystem_htd_TotFixedDT_passiveTracers
+import linearSystem_htd_TotFixedDT_withTracking_passiveTracers
