@@ -881,10 +881,14 @@ def create_graphINFO(G):
         
         os.chdir('../')
 #------------------------------------------------------------------------------
-def improve_capillary_diameters_by_binFitting(G):
+def improve_capillary_diameters_by_binFitting(G,mu,std,lowerBound,upperBound):
         """ Histogram base upscaling approach. 
         Furhtermore, the new diameter distributions are plotted in GraphINFO 
         INPUT: G: Vascular graph in iGraph format.
+        mu: mean of the beta distribution
+        std: std of the beta distribution
+        a: lower bound of the beta distribution
+        c: upper bound of the beta distribution
         OUTPUT:
         """
 
@@ -901,17 +905,28 @@ def improve_capillary_diameters_by_binFitting(G):
         #The goal for the mean value is 4.0 and for the std 1.0
         
         a=0 #equals = 2.5
-        b=1 #equals = 9.0
-        aReal = 2.5
-        bReal = 9.0
-        #mu = 0.2615 #equals 4.2
-        #std=0.1471 #equals 0.956
+        c=1 #equals = 9.0
+        aReal = lowerBound
+        cReal = upperBound
         
-        #Alpha and beta have been computed with matlab see script betaDistribution.m
-        alpha = 2.0735
-        beta=5.8546
+        ##Compute Alpha and beta have been computed with matlab see script betaDistribution.m
+        muStar_func = lambda mu,std,a,c: (mu-a)/(c-a)
+        stdStar_func = lambda std,a,c: std/(c-a)
         
-        #Define beta general betadistribution [a,b]
+        muStar = muStar_func(mu,std,aReal,cReal)
+        stdStar = stdStar_func(std,aReal,cReal)
+        
+        alpha_func = lambda mu,std: ((1-mu)/(std**2)-(1/mu))*(mu**2)
+        beta_func = lambda alpha,mu: alpha*((1/mu)-1)
+        
+        alpha = alpha_func(muStar,stdStar)
+        beta = beta_func(alpha,muStar)
+
+        #old alpha and betas, however they are slightly off --> mu=4.2, std=0.95
+        #alpha = 2.0735
+        #beta=5.8546
+        
+        #Define beta general betadistribution [a,c]
         betaFuncDummy = lambda u,alpha,beta: u**(alpha-1)*(1-u)**(beta-1)
         betaFunc = lambda alpha,beta: quad(betaFuncDummy,0,1,args=(alpha,beta))[0]
         betaFuncPDF = lambda x,alpha,beta: 1./betaFunc(alpha,beta)*x**(alpha-1)*(1-x)**(beta-1)
@@ -927,11 +942,11 @@ def improve_capillary_diameters_by_binFitting(G):
         
         nBins=500
         width=1./nBins
-        widthD=(bReal-aReal)/nBins
-        eNo=len(G.es(diameter_le=bReal))
-        eNoCap=len(G.es(diameter_le=bReal,nkind_eq=4))
-        caps=G.es(diameter_le=bReal).indices
-        capsEdges=G.es(diameter_le=bReal,nkind_eq=4).indices
+        widthD=(cReal-aReal)/nBins
+        eNo=len(G.es(diameter_le=cReal))
+        eNoCap=len(G.es(diameter_le=cReal,nkind_eq=4))
+        caps=G.es(diameter_le=cReal).indices
+        capsEdges=G.es(diameter_le=cReal,nkind_eq=4).indices
         
         bins=[]
         bins.append(0)
@@ -949,7 +964,6 @@ def improve_capillary_diameters_by_binFitting(G):
             limHD=(i+1)*widthD+aReal
             binsD.append(limHD)
             if limHD >= dmin and limLD < dmin:
-                edges=G.es(diameterNew_ge=limLD,diameterNew_lt=dmin).indices
                 edges=G.es(diameterNew_ge=limLD,diameterNew_lt=dmin).indices
                 if len(edges) > 0:
                     factor=dmin-np.min(G.es[edges]['diameterNew'])
@@ -969,7 +983,6 @@ def improve_capillary_diameters_by_binFitting(G):
             else:
                 if i == 0:
                     edges=G.es(diameterNew_lt=limLD).indices
-                    print(len(edges))
                     if len(edges) > 0:
                         factor=limLD-np.min(G.es[edges]['diameterNew'])
                         G.es[edges]['diameterNew'] = np.array(G.es[edges]['diameterNew']) + factor
@@ -978,10 +991,10 @@ def improve_capillary_diameters_by_binFitting(G):
                 sumnGoal += nGoal
                 edges=G.es(diameterNew_ge=limLD,diameterNew_lt=limHD).indices
                 if len(edges) > nGoal:
-                    shiftENo = len(edges)-nGoal
+                    shiftENo = len(edges)-nGoal #Number of edges that has to be transfered to a large bin
                     sortedE=zip(G.es[edges]['diameterNew'],G.es[edges]['diameter'],edges)
                     sortedE.sort()
-                    dLim=sortedE[-1*shiftENo][0]
+                    dLim=sortedE[-1*shiftENo][0] #if diameter > dLim --> transfered to larger bin
                     if dLim == sortedE[-1*(shiftENo+1)][0]:
                         for j in range(shiftENo):
                             if np.abs(sortedE[-1*(j+1)][0]-dLim) < eps:
@@ -993,8 +1006,8 @@ def improve_capillary_diameters_by_binFitting(G):
                 edges=G.es(diameterNew_ge=limLD,diameterNew_lt=limHD).indices
                 edgesSave.append(len(edges))
         
-        diameters=np.array(G.es[G.es(nkind_eq=4,diameterNew_lt=bReal).indices]['diameterNew'])
-        diametersStart=np.array(G.es[G.es(nkind_eq=4,diameterNew_lt=bReal).indices]['diameterNew'])
+        diameters=np.array(G.es[G.es(nkind_eq=4,diameterNew_lt=cReal).indices]['diameterNew'])
+        diametersStart=np.array(G.es[G.es(nkind_eq=4,diameterNew_lt=cReal).indices]['diameterNew'])
         fig1=plt.figure(figsize=(6,6))
         ax1=fig1.add_subplot(111)
         heights,bins,patches=ax1.hist(diameters,weights=np.zeros_like(diameters)+1./diameters.size,bins=binsD,color=[0.,0.6,0.6])
@@ -1015,7 +1028,7 @@ def improve_capillary_diameters_by_binFitting(G):
         plt.subplots_adjust(left=0.15,right=0.95,bottom=0.125,top=0.95,wspace=0.0,hspace=0.45)
         #fig1.savefig('GraphINFO/diameter_histogram_capsBinFittingAfter.eps',format='eps',dpi=200)
         
-        diameters=np.array(G.es[G.es(nkind_eq=4,diameterNew_lt=bReal).indices]['diameter'])
+        diameters=np.array(G.es[G.es(nkind_eq=4,diameterNew_lt=cReal).indices]['diameter'])
         fig1=plt.figure(figsize=(6,6))
         ax1=fig1.add_subplot(111)
         heights,bins,patches=ax1.hist(diameters,weights=np.zeros_like(diameters)+1./diameters.size,bins=binsD,color=[0.,0.6,0.6])
@@ -1035,8 +1048,10 @@ def improve_capillary_diameters_by_binFitting(G):
         plt.subplots_adjust(left=0.15,right=0.95,bottom=0.125,top=0.95,wspace=0.0,hspace=0.45)
         #fig1.savefig('GraphINFO/diameter_histogram_capsBinFittingBefore.eps',format='eps',dpi=200)
         
-        diameters=np.array(G.es[G.es(nkind_eq=4,diameterNew_lt=bReal).indices]['diameterNew'])
-        diameters2=np.array(G.es[G.es(nkind_eq=4,diameterNew_lt=bReal).indices]['diameter'])
+        diameters=np.array(G.es[G.es(nkind_eq=4,diameterNew_lt=cReal).indices]['diameterNew'])
+        diameters2=np.array(G.es[G.es(nkind_eq=4,diameterNew_lt=cReal).indices]['diameter'])
+        print('length')
+        print(len(diameters2))
         fig1=plt.figure(figsize=(7.5,7.5))
         ax1=fig1.add_subplot(111)
         heights,bins,patches=ax1.hist(diameters2,weights=np.zeros_like(diameters2)+1./diameters2.size,bins=binsD,facecolor=[0.5,0.5,0.5],edgecolor=[0.5,0.5,0.5])
@@ -1065,7 +1080,7 @@ def improve_capillary_diameters_by_binFitting(G):
         ax1.set_position([0.18,0.16,0.775,0.775])
         ax1.tick_params(axis='both', which='major', pad=10)
         #fig1.savefig('GraphINFO/diameter_histogram_capsBinFittingCombinded.eps',format='eps',dpi=300)
-        #fig1.savefig('GraphINFO/diameter_histogram_capsBinFittingCombinded.tiff',format='tiff',dpi=300)
+        fig1.savefig('GraphINFO/diameter_histogram_capsBinFittingCombinded_'+str(mu)+'.tiff',format='tiff',dpi=300)
 
         #G.es['diameter']=deepcopy(G.es['diameterNew'])
         #del(G.es['diameterNew'])
@@ -1260,6 +1275,7 @@ def cut_off_sides_of_MVN(G,percentageToCutOff=15,axis=0):
             print('Center is calculated')
         else:
             center=G['center']
+
         if axis == 0:
             varMinCut=center[0]-(1-0.01*percentageToCutOff)*(center[0]-min(x))
             varMaxCut=center[0]+(1-0.01*percentageToCutOff)*(max(x)-center[0])
@@ -1362,63 +1378,60 @@ def cut_off_bottom_MVN(G,depthToCutOff=1200):
 
         G.vs['z']=z
         zMaxCut=depthToCutOff
-        zMinCut=np.min(G.vs['z'])
         G['zMaxCut']=zMaxCut
         zMaxDelete=G.vs(z_gt=zMaxCut).indices
-        zDeletes=[zMaxDelete]
         deleteVertices=[]
         deleteEdges=[]
-        for zDel in zDeletes:
-            for i in zDel:
-                if G.vs['nkind'][i] == 4:
-                    inVerts=[]
-                    inEdges=[]
-                    outVerts=[]
-                    for j,k in zip(G.neighbors(i),G.incident(i)):
-                        if G.vs[j]['z'] > zMinCut and G.vs[j]['z'] < zMaxCut:
-                            inVerts.append(j)
-                            inEdges.append(k)
-                        else:
-                            outVerts.append(j)
-                    if len(inVerts) != 0:
-                        if len(inVerts) == 1:
-                            if G.vs[inVerts[0]]['degree'] == 2:
-                                deleteVertices.append(i)
-                            else:
-                                deleteEdges.append(inEdges[0])
-                                deleteVertices.append(i)
-                                G.add_vertices(1)
-                                for attr in G.vs.attribute_names():
-                                    G.vs[G.vcount()-1][attr]=G.vs[i][attr]
-                                G.vs[G.vcount()-1]['borderVerts']=1
-                                G.add_edges([(inVerts[0],G.vcount()-1)])
-                                for attr in G.es.attribute_names():
-                                    if attr in ['points','lengths','lengths2','diameters2','diameters']:
-                                        if i > inVerts[0]:
-                                            G.es[G.ecount()-1][attr]=G.es[inEdges[0]][attr]
-                                        else:
-                                            G.es[G.ecount()-1][attr]=G.es[inEdges[0]][attr][::-1]
-                                    else:
-                                        G.es[G.ecount()-1][attr]=G.es[inEdges[0]][attr]
-                        else:
-                            for j,k in zip(inVerts,inEdges):
-                                deleteEdges.append(k)
-                                G.add_vertices(1)
-                                for attr in G.vs.attribute_names():
-                                    G.vs[G.vcount()-1][attr]=G.vs[i][attr]
-                                G.vs[G.vcount()-1]['borderVerts']=1
-                                G.add_edges([(j,G.vcount()-1)])
-                                for attr in G.es.attribute_names():
-                                    if attr in ['points','lengths','lengths2','diameters2','diameters']:
-                                        if i > j:
-                                            G.es[G.ecount()-1][attr]=G.es[k][attr]
-                                        else:
-                                            G.es[G.ecount()-1][attr]=G.es[k][attr][::-1]
-                                    else:
-                                        G.es[G.ecount()-1][attr]=G.es[k][attr]
-                            deleteVertices.append(i)
+        for i in zMaxDelete:
+            if G.vs['nkind'][i] == 4:
+                inVerts=[]
+                inEdges=[]
+                outVerts=[]
+                for j,k in zip(G.neighbors(i),G.incident(i)):
+                    if G.vs[j]['z'] < zMaxCut:
+                        inVerts.append(j)
+                        inEdges.append(k)
                     else:
+                        outVerts.append(j)
+                if len(inVerts) != 0:
+                    if len(inVerts) == 1:
+                        if G.vs[inVerts[0]]['degree'] == 2:
+                            deleteVertices.append(i)
+                        else:
+                            deleteEdges.append(inEdges[0])
+                            deleteVertices.append(i)
+                            G.add_vertices(1)
+                            for attr in G.vs.attribute_names():
+                                G.vs[G.vcount()-1][attr]=G.vs[i][attr]
+                            G.vs[G.vcount()-1]['borderVerts']=1
+                            G.add_edges([(inVerts[0],G.vcount()-1)])
+                            for attr in G.es.attribute_names():
+                                if attr in ['points','lengths','lengths2','diameters2','diameters']:
+                                    if i > inVerts[0]:
+                                        G.es[G.ecount()-1][attr]=G.es[inEdges[0]][attr]
+                                    else:
+                                        G.es[G.ecount()-1][attr]=G.es[inEdges[0]][attr][::-1]
+                                else:
+                                    G.es[G.ecount()-1][attr]=G.es[inEdges[0]][attr]
+                    else:
+                        for j,k in zip(inVerts,inEdges):
+                            deleteEdges.append(k)
+                            G.add_vertices(1)
+                            for attr in G.vs.attribute_names():
+                                G.vs[G.vcount()-1][attr]=G.vs[i][attr]
+                            G.vs[G.vcount()-1]['borderVerts']=1
+                            G.add_edges([(j,G.vcount()-1)])
+                            for attr in G.es.attribute_names():
+                                if attr in ['points','lengths','lengths2','diameters2','diameters']:
+                                    if i > j:
+                                        G.es[G.ecount()-1][attr]=G.es[k][attr]
+                                    else:
+                                        G.es[G.ecount()-1][attr]=G.es[k][attr][::-1]
+                                else:
+                                    G.es[G.ecount()-1][attr]=G.es[k][attr]
                         deleteVertices.append(i)
+                else:
+                    deleteVertices.append(i)
 
         G.delete_edges(np.unique(deleteEdges).tolist())
         G.delete_vertices(np.unique(deleteVertices).tolist())

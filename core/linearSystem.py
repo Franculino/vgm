@@ -71,12 +71,14 @@ class LinearSystem(object):
             self._resistanceLength = 0
 
         if self._withRBC != 0:
-            if 'htt' not in G.es.attribute_names():
-                G.es['htt']=[self._withRBC]*G.ecount()
-                self._withRBC = 1
-            httNone = G.es(htt_eq=None).indices
-            if len(httNone) > 0:
-                G.es[httNone]['htt']=[self._withRBC]*len(httNone)
+            if self._withRBC < 1.:
+                if 'htt' not in G.es.attribute_names():
+                    G.es['htt']=[self._withRBC]*G.ecount()
+                    self._withRBC = 1
+                else:
+                    httNone = G.es(htt_eq=None).indices
+                    if len(httNone) > 0:
+                        G.es[httNone]['htt']=[self._withRBC]*len(httNone)
 
         self.update(G)
         self._eps = np.finfo(float).eps
@@ -128,14 +130,19 @@ class LinearSystem(object):
 
         #if with RBCs compute effective resistance
         if self._withRBC:
-            dischargeHt = [min(htt2htd(e, d, self._invivo), 1.0) for e,d in zip(G.es['htt'],G.es['diameter'])]
-            G.es['effResistance'] =[ res * nurel(max(4.0,d),min(dHt,0.6),self._invivo) for res,dHt,d in zip(G.es['resistance'], \
+            if 'htd' not in G.es.attribute_names():
+                dischargeHt = [min(htt2htd(e, d, self._invivo), 1.0) for e,d in zip(G.es['htt'],G.es['diameter'])]
+            else:
+                dischargeHt = G.es['htd']
+            #G.es['effResistance'] =[ res * nurel(max(4.0,d),min(dHt,0.6),self._invivo) for res,dHt,d in zip(G.es['resistance'], \
+            #    dischargeHt,G.es['diameter'])]
+            G.es['effResistance'] =[ res * nurel(max(3.5,d),min(dHt,0.6),self._invivo) for res,dHt,d in zip(G.es['resistance'], \
                 dischargeHt,G.es['diameter'])]
             G.es['conductance']=1/np.array(G.es['effResistance'])
         else: 
 	    # Compute conductance
             for e in G.es:
-	        e['conductance']=1/e['resistance']
+	            e['conductance']=1/e['resistance']
         
             #if not bound_cond is None:
             #    self._conductance = [max(min(c, bound_cond[1]), bound_cond[0])
@@ -222,9 +229,11 @@ class LinearSystem(object):
              ml = rootnode_solver(A, smooth=('energy', {'degree':2}), strength='evolution' )
              M = ml.aspreconditioner(cycle='V')
              # Solve pressure system
-             x,info = gmres(A, self._b, tol=self._eps, maxiter=50, M=M)
+             #x,info = gmres(A, self._b, tol=self._eps, maxiter=1000, M=M)
+             x,info = gmres(A, self._b, tol=10*self._eps,M=M)
              if info != 0:
                  print('ERROR in Solving the Matrix')
+                 print(info)
 
         G.vs['pressure'] = x
         self._x = x
@@ -235,26 +244,31 @@ class LinearSystem(object):
         for v in G.vs:
             v['pressure']=v['pressure']/vgm.units.scaling_factor_du('mmHg',G['defaultUnits'])
         if self._withRBC:
-            for e in G.es:
-                dischargeHt = min(htt2htd(e['htt'], e['diameter'], self._invivo), 1.0)
-	        e['v']=dischargeHt/e['htt']*e['flow']/(0.25*np.pi*e['diameter']**2)
+            if 'htd' not in G.es.attribute_names():
+                dischargeHt = [min(htt2htd(e['htt'], e['diameter'], self._invivo), 1.0) for e in G.es]
+            else:
+                dischargeHt = G.es['htd']
+            if 'htt' not in G.es.attribute_names():
+                G.es['v']=[e['flow']/(0.25*np.pi*e['diameter']**2) for e in G.es]
+            else:
+	            G.es['v']=[Htd/e['htt']*e['flow']/(0.25*np.pi*e['diameter']**2) for Htd,e in zip(dischargeHt,G.es)]
         else:
             for e in G.es:
-	        e['v']=e['flow']/(0.25*np.pi*e['diameter']**2)
+	            e['v']=e['flow']/(0.25*np.pi*e['diameter']**2)
         
         #Convert 'pBC' from default Units to mmHg
         pBCneNone=G.vs(pBC_ne=None).indices
         if 'diamCalcEff' in G.es.attribute_names():
             del(G.es['diamCalcEff'])
 
-        if 'effResistance' in G.es.attribute_names():
-            del(G.es['effResistance'])
+        #if 'effResistance' in G.es.attribute_names():
+        #    del(G.es['effResistance'])
 
-        if 'conductance' in G.es.attribute_names():
-            del(G.es['conductance'])
+        #if 'conductance' in G.es.attribute_names():
+        #    del(G.es['conductance'])
 
-        if 'resistance' in G.es.attribute_names():
-            del(G.es['resistance'])
+        #if 'resistance' in G.es.attribute_names():
+        #    del(G.es['resistance'])
 
         G.vs[pBCneNone]['pBC']=np.array(G.vs[pBCneNone]['pBC'])*(1/vgm.units.scaling_factor_du('mmHg',G['defaultUnits']))
 

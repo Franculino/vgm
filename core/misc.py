@@ -6,7 +6,7 @@ import numpy as np
 from pylab import flatten
 import scipy as sp
 from scipy import (array, arccos, argmin, concatenate, dot, ones, mean, pi, 
-                   shape, unique, weave,finfo)
+                   shape, unique, finfo)
 from scipy.linalg import norm
 from scipy.spatial import kdtree
 from scipy.interpolate import griddata

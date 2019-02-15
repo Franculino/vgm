@@ -52,7 +52,8 @@ def prepare_for_concatenating_the_compound_NW(Ga,Gd):
         origin = np.mean(Ga.vs['r'], axis=0)[:2]
         shift = (np.append(origin,0.)-np.append(centerGd,Gd['zMeanPial'])).tolist()
         print(shift)
-        vgm.shift(Gd, shift)
+        Gd.vs['r']=[v['r']+np.array(shift) for v in Gd.vs]
+        #vgm.shift(Gd, shift)
         Ga.vs['z'] = [r[2] for r in Ga.vs['r']]
         Ga.vs['x'] = [r[0] for r in Ga.vs['r']]
         Ga.vs['y'] = [r[1] for r in Ga.vs['r']]

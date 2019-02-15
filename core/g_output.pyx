@@ -8,7 +8,8 @@ import numpy as np
 import cython
 cimport numpy as np
 cimport libc.stdio as stdio
-from pylab import is_string_like
+#from pylab import is_string_like
+
 
 __all__ = ['write_mv3d', 'write_vtp', 'write_pvd_time_series', 'write_graphml',
            'write_pkl', 'write_amira_mesh_ascii', 'write_landmarks']

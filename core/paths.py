@@ -6,6 +6,7 @@ import vgm
 import numpy as np
 from sys import stdout
 import time as ttime
+from copy import deepcopy
 
     
 __all__ = ['all_paths_between_two_vertices', 'all_paths_of_given_length',
@@ -207,7 +208,6 @@ def path_between_a_and_v_for_vertexList(G,v,direction='out'):
     
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
-
 def path_between_a_and_v_for_vertexList_2(G,v,direction='out'):
     """Finds all posible paths from a given vertex that have a specific length.
     The paths can be directed or not directed, depending on the type of graph.
@@ -474,6 +474,97 @@ def paths_to_subgraph(G,paths,filename=None):
     
     return sg
 
+# -----------------------------------------------------------------------------
+def path_between_mainDA_and_mainAV(G):
+    """Finds all posible paths from a given vertex that have a specific length.
+    The paths cao be directed or not directed, depending on the type of graph.
+    INPUT: G: Vascular graph in iGraph format.
+           v: Vertex List from which the search is to be started. 
+           direction: Way to traverse a directed graph. Can be either 'out', 
+                      'in', 'out' = from a to v and 'in' = from v to a
+    OUTPUT: paths: The possible paths from v.
+    """
+
+    G.to_directed_flow_based()
+    pathDict={}
+
+    mainDAedges=G.es(mainDA_eq=1).indices
+    mainDArootVertices=[]
+    for e in G.es[mainDAedges]:
+        for v in e.tuple:
+            for v2,e2 in zip(G.neighbors(v),G.incident(v)):
+                if G.es[e2]['mainDA'] != 1:
+                    mainDArootVertices.append(v)
+
+    mainDArootVertices = np.unique(mainDArootVertices)
+
+    for i,root in enumerate(mainDArootVertices):
+        print(i)
+        paths=[]
+        pathsEdges=[]
+        pathsStopped=[]
+        boolsMainAV=[]
+        pathsDone=[]
+        pathsEdgesDone=[]
+        pathsStoppedDone=[]
+        boolsMainAVDone=[]
+        for v,e in zip(G.neighbors(root,mode='out'),G.incident(root,mode='out')):
+            if G.es[e]['mainDA'] != 1:
+                paths.append([root,v])
+                pathsEdges.append([e])
+                pathsStopped.append(0)
+                boolsMainAV.append(0)
+        while np.sum(pathsStopped) != len(pathsStopped):
+            pathsNew = []
+            pathsEdgesNew = []
+            pathsStoppedNew = []
+            boolsMainAVNew = []
+            for path, pathEdges, pathStopped, boolMainAV in zip(paths, pathsEdges, pathsStopped, boolsMainAV):
+                pathOrig=deepcopy(path)
+                pathEdgesOrig=deepcopy(pathEdges)
+                currentVertex=path[-1]
+                #print('')
+                #print(path)
+                #print(pathEdges)
+                #print(pathStopped)
+                #print(boolMainAV)
+                #print(len(path))
+                #print(len(G.neighbors(currentVertex,mode='out'))==0)
+                if len(G.neighbors(currentVertex,mode='out')) == 0:
+                    pathsDone.append(path)
+                    pathsEdgesDone.append(pathEdges)
+                    pathsStoppedDone.append(1)
+                    boolsMainAVDone.append(0)
+                else:
+                    for v,e in zip(G.neighbors(currentVertex,mode='out'),G.incident(currentVertex,mode='out')):
+                        if G.es[e]['mainAV'] == 1 or G.es[e]['mainDA'] == 1:
+                            path=pathOrig
+                            pathEdges=pathEdgesOrig
+                            boolStop = 1
+                            if G.es[e]['mainAV'] == 1:
+                                mainAV = 1
+                            else:
+                                mainAV = -1
+                            pathsDone.append(path)
+                            pathsEdgesDone.append(pathEdges)
+                            pathsStoppedDone.append(1)
+                            boolsMainAVDone.append(mainAV)
+                        elif G.es[e]['mainDA'] != 1:
+                            path=pathOrig+[v]
+                            pathEdges=pathEdgesOrig+[e]
+                            boolStop = 0
+                            mainAV = 0
+                            pathsNew.append(path)
+                            pathsEdgesNew.append(pathEdges)
+                            pathsStoppedNew.append(boolStop)
+                            boolsMainAVNew.append(mainAV)
+            paths = deepcopy(pathsNew)
+            pathsEdges = deepcopy(pathsEdgesNew)
+            pathsStopped = deepcopy(pathsStoppedNew)
+            boolsMainAV = deepcopy(boolsMainAVNew)
+        pathDict[root]=[pathsDone,pathsEdgesDone,boolsMainAVDone]
+
+    return pathDict
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
