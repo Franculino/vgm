@@ -17,8 +17,7 @@ log = vgm.LogDispatcher.create_logger(__name__)
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-
-def all_paths_between_two_vertices(G,v1,v2,max_path_length=25,direction='out'):
+def all_paths_between_two_vertices(G,v1,v2,max_path_length=25,direction='all'):
     """Finds all possible paths between two vertices of a graph. The paths can
     be directed or not directed, depending on the type of graph.
     INPUT: G: Vascular graph in iGraph format.
@@ -44,7 +43,6 @@ def all_paths_between_two_vertices(G,v1,v2,max_path_length=25,direction='out'):
         oldPaths = newPaths; newPaths = []
     
     return paths
-
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------

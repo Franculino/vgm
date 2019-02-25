@@ -21,104 +21,81 @@ __all__ = ['LinearSystem']
 #------------------------------------------------------------------------------
 
 class LinearSystem(object):
-    def __init__(self, G, **kwargs):
-        """Constructs the linear system A x = b where the matrix A contains the 
-        conductance information of the vascular graph, the vector b specifies 
-        the boundary conditions and the vector x holds the pressures at the 
-        vertices (for which the system needs to be solved).
-        pBC should be given in mmHG and pressure will be output in mmHg
+    def __init__(self, G, withRBC = 0, invivo = 0, dMin_empirical = 3.5, htdMax_empirical = 0.6, verbose = True,**kwargs):
+        """
+        Computes the flow and pressure field of a vascular graph without RBC tracking.
+        It can be chosen between pure plasma flow, constant hematocrit or a given htt/htd
+        distribution.
+        The pressure boundary conditions (pBC) should be given in mmHG and pressure will be output in mmHg
 
         INPUT: G: Vascular graph in iGraph format.(the pBC should be given in mmHg)
-               withRBC: boolean if a fixed distribution of RBCs should be considered
-                       if 'htt' is an edge attribute the current distribution is used.
-                       Otherwise the value to be assinged for all vessels should be given.
-                       For arteries and veins a empirical value which is a function of
-                       the diameter is assigned.
-               resistanceLength: boolean if diameter is not considered for the restistance
-                       and hence the resistance is only a function of the vessel length
-        OUTPUT: A: Matrix A of the linear system, holding the conductance 
-                   information.
-                b: Vector b of the linear system, holding the boundary 
-                   conditions.
+               invivo: boolean if the invivo or invitro empirical functions are used (default = 0)
+               withRBC: = 0: no RBCs, pure plasma Flow (default)
+                        0 < withRBC < 1 & 'htt' not in edgeAttributes: the given value is assigned as htt to all edges.
+                        0 < withRBC < 1 & 'htt' in edgeAttributes: the given value is assigned as htt to all edges where htt = None.
+                        NOTE: If htd is not in the edge attributes, Htd will be computed from htt and used to compute the resistance.
+                        If htd is already in the edge attributes, it won't be recomputed but the current htd values will be used.
+                dMin_empiricial: lower limit for the diameter that is used to compute nurel (effective viscosity). The aim of the limit
+                        is to avoid using the empirical equations in a range where no data exists (default = 3.5).
+                htdMax_empirical: upper limit for htd that is used to compute nurel (effective viscosity). The aim of the limit
+                        is to avoid using the empirical equations in a range where no data exists (default = 0.6). Maximum has to be 1.
+                verbose: Bool if WARNINGS and setup information is printed
+        OUTPUT: None, the edge properties htt is assgined and the function update is executed (see description for more details)
         """
         self._G = G
+        self._eps = np.finfo(float).eps
         self._P = Physiology(G['defaultUnits'])
         self._muPlasma = self._P.dynamic_plasma_viscosity()
-        #Check if a arbirtrary distribution of RBCs should be considered
-        if kwargs.has_key('withRBC'):
-            if kwargs['withRBC']!=0:
-                self._withRBC = kwargs['withRBC']
-            else:
-                self._withRBC = 0
-        else:
-            self._withRBC = 0
+        self._withRBC = withRBC
+        self._invivo = invivo
+        self._verbose = verbose
+        self._dMin_empirical = dMin_empirical
+        self._htdMax_empirical = htdMax_empirical
 
-        if kwargs.has_key('invivo'):
-            if kwargs['invivo']!=0:
-                self._invivo = kwargs['invivo']
-            else:
-                self._invivo = 0
-        else:
-            self._invivo = 0
-
-        if kwargs.has_key('resistanceLength'):
-            if kwargs['resistanceLength']==1:
-                self._resistanceLength = 1
-                print('Diameter not considered for calculation of resistance')
-            else:
-                self._resistanceLength = 0
-        else:
-            self._resistanceLength = 0
+        if self._verbose:
+            print('INFO: The limits for the compuation of the effective viscosity are set to')
+            print('Minimum diameter %.2f' %self._dMin_empirical)
+            print('Maximum discharge %.2f' %self._htdMax_empirical)
 
         if self._withRBC != 0:
             if self._withRBC < 1.:
                 if 'htt' not in G.es.attribute_names():
                     G.es['htt']=[self._withRBC]*G.ecount()
-                    self._withRBC = 1
                 else:
                     httNone = G.es(htt_eq=None).indices
                     if len(httNone) > 0:
                         G.es[httNone]['htt']=[self._withRBC]*len(httNone)
+                    else:
+                        if self._verbose:
+                            print('WARNING: htt is already an edge attribute. \n Existing values are not overwritten!'+\
+                                    '\n If new values should be assigned htt has to be deleted beforehand!')
+            else:
+                print('ERROR: 0 < withRBC < 1')
 
-        self.update(G)
-        self._eps = np.finfo(float).eps
+        if 'rBC' not in G.vs.attribute_names():
+            G.vs['rBC'] = [None]*G.vcount()
+
+        if 'pBC' not in G.vs.attribute_names():
+            G.vs['pBC'] = [None]*G.vcount()
+
+        self.update()
         
     #--------------------------------------------------------------------------    
         
-    def update(self, newGraph=None):
+    def update(self):
         """Constructs the linear system A x = b where the matrix A contains the 
         conductance information of the vascular graph, the vector b specifies 
         the boundary conditions and the vector x holds the pressures at the 
-        vertices (for which the system needs to be solved). x will have the 
-        same units of [pressure] as the pBC vertices.
+        vertices (for which the system needs to be solved). 
     
-        Note that in this approach, A and b contain a mixture of dimensions, 
-        i.e. A and b have dimensions of [1.0] and [pressure] in the pBC case,
-        [conductance] and [conductance*pressure] otherwise, the latter being 
-        rBCs. This has the advantage that no re-indexing is required as the 
-        matrices contain all vertices.
-        INPUT: newGraph: Vascular graph in iGraph format to replace the 
-                         previous self._G. (Optional, default=None.)
-        OUTPUT: A: Matrix A of the linear system, holding the conductance 
-                   information.
-                b: Vector b of the linear system, holding the boundary 
-                   conditions.
+        OUTPUT: matrix A and vector b
         """
         htt2htd = self._P.tube_to_discharge_hematocrit
         nurel = self._P.relative_apparent_blood_viscosity
-        if newGraph is not None:
-            self._G = newGraph
-            
         G = self._G
-        if not G.vs[0].attributes().has_key('pBC'):
-            G.vs[0]['pBC'] = None
-        if not G.vs[0].attributes().has_key('rBC'):
-            G.vs[0]['rBC'] = None        
 
         #Convert 'pBC' ['mmHG'] to default Units
-        pBCneNone=G.vs(pBC_ne=None).indices
-        for i in pBCneNone:
-            v=G.vs[i]
+        for v in G.vs(pBC_ne=None):
             v['pBC']=v['pBC']*vgm.units.scaling_factor_du('mmHg',G['defaultUnits'])
         
         nVertices = G.vcount()
@@ -131,24 +108,19 @@ class LinearSystem(object):
         #if with RBCs compute effective resistance
         if self._withRBC:
             if 'htd' not in G.es.attribute_names():
-                dischargeHt = [min(htt2htd(e, d, self._invivo), 1.0) for e,d in zip(G.es['htt'],G.es['diameter'])]
+                dischargeHt = [min(htt2htd(htt, d, self._invivo), 1.0) for htt,d in zip(G.es['htt'],G.es['diameter'])]
+                G.es['htd'] = dischargeHt
             else:
                 dischargeHt = G.es['htd']
-            #G.es['effResistance'] =[ res * nurel(max(4.0,d),min(dHt,0.6),self._invivo) for res,dHt,d in zip(G.es['resistance'], \
-            #    dischargeHt,G.es['diameter'])]
-            G.es['effResistance'] =[ res * nurel(max(3.5,d),min(dHt,0.6),self._invivo) for res,dHt,d in zip(G.es['resistance'], \
-                dischargeHt,G.es['diameter'])]
+                if self._verbose:
+                    print('WARNING: htd is already an edge attribute. \n Existing values are not overwritten!'+\
+                        '\n If new values should be assigned htd has to be deleted beforehand!')
+            G.es['effResistance'] =[ res * nurel(max(self._dMin_empirical,d),min(dHt,self._htdMax_empirical),self._invivo) \
+                    for res,dHt,d in zip(G.es['resistance'], dischargeHt,G.es['diameter'])]
             G.es['conductance']=1/np.array(G.es['effResistance'])
-        else: 
-	    # Compute conductance
-            for e in G.es:
-	            e['conductance']=1/e['resistance']
+        else:
+            G.es['conductance'] = [1/e['resistance'] for e in G.es]
         
-            #if not bound_cond is None:
-            #    self._conductance = [max(min(c, bound_cond[1]), bound_cond[0])
-            #                     for c in G.es['conductance']]
-            #else:
-            #    self._conductance = G.es['conductance']
         self._conductance = G.es['conductance']
 
         for vertex in G.vs:        
@@ -163,7 +135,7 @@ class LinearSystem(object):
                 aDummy=0
                 k=0
                 neighbors=[]
-                for edge in G.adjacent(i,'all'):
+                for edge in G.incident(i,'all'):
                     if G.is_loop(edge):
                         continue
                     j=G.neighbors(i)[k]
@@ -193,17 +165,13 @@ class LinearSystem(object):
 
     def solve(self, method, **kwargs):
         """Solves the linear system A x = b for the vector of unknown pressures
-        x, either using a direct solver or an iterative AMG solver. From the
+        x, either using a direct solver (obsolete) or an iterative GMRES solver. From the
         pressures, the flow field is computed.
-        INPUT: method: This can be either 'direct' or 'iterative'
-               **kwargs 
-               precision: The accuracy to which the ls is to be solved. If not 
-                          supplied, machine accuracy will be used.
-               maxiter: The maximum number of iterations. The default value for
-                        the iterative solver is 250.
+        INPUT: method: This can be either 'direct' or 'iterative2'
         OUTPUT: None - G is modified in place.
+                G_final.pkl & G_final.vtp: are save as output
+                sampledict.pkl: is saved as output
         """
-                
         b = self._b
         G = self._G
         htt2htd = self._P.tube_to_discharge_hematocrit
@@ -212,20 +180,7 @@ class LinearSystem(object):
         if method == 'direct':
             linalg.use_solver(useUmfpack=True)
             x = linalg.spsolve(A, b)
-        elif method == 'iterative':
-            if kwargs.has_key('precision'):
-                eps = kwargs['precision']
-            else:
-                eps = self._eps
-            if kwargs.has_key('maxiter'):
-                maxiter = kwargs['maxiter']
-            else:
-                maxiter = 250
-            AA = pyamg.smoothed_aggregation_solver(A, max_levels=10, max_coarse=500)
-            x = abs(AA.solve(self._b, x0=None, tol=eps, accel='cg', cycle='V', maxiter=maxiter))
-            # abs required, as (small) negative pressures may arise
         elif method == 'iterative2':
-         # Set linear solver
              ml = rootnode_solver(A, smooth=('energy', {'degree':2}), strength='evolution' )
              M = ml.aspreconditioner(cycle='V')
              # Solve pressure system
@@ -238,45 +193,27 @@ class LinearSystem(object):
         G.vs['pressure'] = x
         self._x = x
         conductance = self._conductance
-        G.es['flow'] = [abs(G.vs[edge.source]['pressure'] -   \
-                            G.vs[edge.target]['pressure']) *  \
+        G.es['flow'] = [abs(G.vs[edge.source]['pressure'] - G.vs[edge.target]['pressure']) *  \
                         conductance[i] for i, edge in enumerate(G.es)]
+
+        #Default Units - mmHg for pressure
         for v in G.vs:
             v['pressure']=v['pressure']/vgm.units.scaling_factor_du('mmHg',G['defaultUnits'])
+
         if self._withRBC:
-            if 'htd' not in G.es.attribute_names():
-                dischargeHt = [min(htt2htd(e['htt'], e['diameter'], self._invivo), 1.0) for e in G.es]
-            else:
-                dischargeHt = G.es['htd']
-            if 'htt' not in G.es.attribute_names():
-                G.es['v']=[e['flow']/(0.25*np.pi*e['diameter']**2) for e in G.es]
-            else:
-	            G.es['v']=[Htd/e['htt']*e['flow']/(0.25*np.pi*e['diameter']**2) for Htd,e in zip(dischargeHt,G.es)]
+	        G.es['v']=[e['htd']/e['htt']*e['flow']/(0.25*np.pi*e['diameter']**2) for e in G.es]
         else:
-            for e in G.es:
-	            e['v']=e['flow']/(0.25*np.pi*e['diameter']**2)
+	        G.es['v']=[e['flow']/(0.25*np.pi*e['diameter']**2) for e in G.es]
         
         #Convert 'pBC' from default Units to mmHg
         pBCneNone=G.vs(pBC_ne=None).indices
-        if 'diamCalcEff' in G.es.attribute_names():
-            del(G.es['diamCalcEff'])
-
-        #if 'effResistance' in G.es.attribute_names():
-        #    del(G.es['effResistance'])
-
-        #if 'conductance' in G.es.attribute_names():
-        #    del(G.es['conductance'])
-
-        #if 'resistance' in G.es.attribute_names():
-        #    del(G.es['resistance'])
-
         G.vs[pBCneNone]['pBC']=np.array(G.vs[pBCneNone]['pBC'])*(1/vgm.units.scaling_factor_du('mmHg',G['defaultUnits']))
 
         vgm.write_pkl(G, 'G_final.pkl')
         vgm.write_vtp(G, 'G_final.vtp',False)
 
-	#Write Output
-	sampledict={}
+        #Write Output
+        sampledict={}
         for eprop in ['flow', 'v']:
             if not eprop in sampledict.keys():
                 sampledict[eprop] = []
@@ -286,56 +223,9 @@ class LinearSystem(object):
                 sampledict[vprop] = []
             sampledict[vprop].append(G.vs[vprop])
 
-	g_output.write_pkl(sampledict, 'sampledict.pkl')
-    #--------------------------------------------------------------------------
-
-    def _verify_mass_balance(self):
-        """Computes the mass balance, i.e. sum of flows at each node and adds
-        the result as a vertex property 'flowSum'.
-        INPUT: None
-        OUTPUT: None (result added as vertex property)
-        """
-        G = self._G
-        G.vs['flowSum'] = [sum([G.es[e]['flow'] * np.sign(G.vs[v]['pressure'] -
-                                                    G.vs[n]['pressure'])
-                               for e, n in zip(G.adjacent(v), G.neighbors(v))])
-                           for v in xrange(G.vcount())]
-        for i in range(G.vcount()):
-            if G.vs[i]['flowSum'] > self._eps:
-                print('')
-                print(i)
-                print(G.vs['flowSum'][i])
-                #print(self._res[i])
-                print('ERROR')
-                for j in G.adjacent(i):
-                    print(G.es['flow'][j])
+	    g_output.write_pkl(sampledict, 'sampledict.pkl')
 
     #--------------------------------------------------------------------------
-
-    def _verify_p_consistency(self):
-        """Checks for local pressure maxima at non-pBC vertices.
-        INPUT: None.
-        OUTPUT: A list of local pressure maxima vertices and the maximum 
-                pressure difference to their respective neighbors."""
-        G = self._G
-        localMaxima = []
-        for i, v in enumerate(G.vs):
-            if v['pBC'] is None:
-                pdiff = [v['pressure'] - n['pressure']
-                         for n in G.vs[G.neighbors(i)]]
-                if min(pdiff) > 0:
-                    localMaxima.append((i, max(pdiff)))         
-        return localMaxima
-
-    #--------------------------------------------------------------------------
-    
-    def _residual_norm(self):
-        """Computes the norm of the current residual.
-        """
-        return np.linalg.norm(self._A * self._x - self._b)
-
-    #--------------------------------------------------------------------------
-
     def _update_nominal_and_specific_resistance(self, esequence=None):
         """Updates the nominal and specific resistance of a given edge 
         sequence.
@@ -351,10 +241,7 @@ class LinearSystem(object):
         else:
             es = G.es(esequence)
 
-        if self._resistanceLength:
-            G.es['specificResistance'] = [1]*G.ecount()
-        else:
-            G.es['specificResistance'] = [128 * self._muPlasma / (np.pi * d**4)
+        G.es['specificResistance'] = [128 * self._muPlasma / (np.pi * d**4)
                                         for d in G.es['diameter']]
 
         G.es['resistance'] = [l * sr for l, sr in zip(G.es['length'],
