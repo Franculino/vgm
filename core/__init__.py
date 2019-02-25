@@ -24,6 +24,7 @@ from hierarchicalApproach import *
 from linearSystem_htd_TotFixedDT_noBifRule import *
 from linearSystem_htd_TotFixedDT_passiveTracers import *
 from linearSystem_htd_TotFixedDT_withTracking_passiveTracers import *
+from linearSystem_timeCourse import *
 
 import dilation_and_splits
 import g_input
@@ -51,3 +52,4 @@ import hierarchicalApproach
 import linearSystem_htd_TotFixedDT_noBifRule
 import linearSystem_htd_TotFixedDT_passiveTracers
 import linearSystem_htd_TotFixedDT_withTracking_passiveTracers
+import linearSystem_timeCourse
