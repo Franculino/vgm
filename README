@@ -1,13 +1,19 @@
-site packages required:
+#site packages required:
+
 quantities
 python-igraph
 pyamg
 sympy
+cython
 
-clone from github
+#clone from github
 
+#execute
 python setup.py build
 
 cp build/lib.XYZXYZ/vgm/core/*.so core/
 
-Adjust PYTHONPATH
+#make folder 'logs'
+mkdir logs
+
+#Adjust PYTHONPATH
