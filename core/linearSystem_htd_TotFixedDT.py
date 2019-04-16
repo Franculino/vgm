@@ -4166,7 +4166,11 @@ class LinearSystemHtdTotFixedDT(object):
                         g_output.write_pkl(self._sampledict,filename1)
                         vgm.write_pkl(G,filename2)
                         if BackUpCounter >= 2:
-                            os.remove('G_BackUp'+str(BackUpCounter-2)+'.pkl')
+                            if os.path.isfile('G_BackUp'+str(BackUpCounter-2)+'.pkl'):
+                                os.remove('G_BackUp'+str(BackUpCounter-2)+'.pkl')
+                                print('FILE DELETED')
+                            else:
+                                print('FILE DOES NOT EXIST')
                         self._sampledict = {}
                         self._sampledict['averagedCount']=G['averagedCount']
                         #Convert 'pBC' ['mmHG'] to default Units
@@ -4390,7 +4394,7 @@ class LinearSystemHtdTotFixedDT(object):
              # Solve pressure system
              #counter=gmres_counter()
              #x,info = gmres(A, self._b, tol=self._eps/10000, maxiter=200, M=M,callback=counter)
-             x,info = gmres(A, self._b, tol=self._eps/10000, maxiter=200, M=M)
+             x,info = gmres(A, self._b, tol=self._eps, maxiter=2200, M=M)
              if info != 0:
                  print('SOLVEERROR in Solving the Matrix')
                  print(info)
