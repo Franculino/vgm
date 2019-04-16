@@ -3,3 +3,4 @@ core/*.pyc
 core/*.so
 core/*.c
 messagefile 
+logs/*
