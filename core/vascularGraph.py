@@ -18,7 +18,7 @@ import misc
 import vgm
 
 __all__ = ['VascularGraph']
-log = vgm.LogDispatcher.create_logger(__name__)
+#log = vgm.LogDispatcher.create_logger(__name__)
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -464,9 +464,9 @@ class VascularGraph(Graph):
                      backbone components (which is coarser). 
         OUTPUT: Backbone of the vascular network in VascularGraph format.
         """
-        if mode not in ['edges', 'components']:
-            log.warning('Mode %s not recognized. Setting mode == "edges"' %
-                        (mode))
+        #if mode not in ['edges', 'components']:
+        #    log.warning('Mode %s not recognized. Setting mode == "edges"' %
+        #                (mode))
         GC = deepcopy(self)
         if bbVertices is None:
             bbVertices = []
@@ -1079,10 +1079,10 @@ class VascularGraph(Graph):
                             vertex in question is indeed of order 2.
         OUTPUT: None
         """
-        if self.degree()[orderTwoVertex] != 2:
-            log.error('Vertex %i is not of order 2. Aborting.' %
-                      orderTwoVertex)
-            return
+        #if self.degree()[orderTwoVertex] != 2:
+        #    log.error('Vertex %i is not of order 2. Aborting.' %
+        #              orderTwoVertex)
+        #    return
         
         # Convert from numpy integer:
         orderTwoVertex = int(orderTwoVertex)
@@ -1489,7 +1489,7 @@ class VascularGraph(Graph):
         if 'volume' in self.es.attribute_names():        
             return sum(edges['volume'])
         else:
-            log.warning("Using V = l * d_mean")
+            #log.warning("Using V = l * d_mean")
             if kwargs.has_key('wallThickness'):
                 wt = kwargs['wallThickness']
             else:
