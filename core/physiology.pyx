@@ -202,7 +202,7 @@ cdef class Physiology(object):
         
         Combination of Data from Shapiro 1971 and from Lipowsky 2005 (Microvascular Rheology and Hemodynamics).
         INPUT: d: Diameter of the blood vessel (see pressureValuesPialShapiro.py).
-               kind: Type of blood vessel. This may be either 'a' or 'v' for 
+               kind: Tybe of blood vessel. This may be either 'a' or 'v' for 
                      'artery' or 'vein' respectively.
         OUTPUT: Blood pressure
         WARNING: This function only produces reliable results for diameters
@@ -558,6 +558,8 @@ cdef class Physiology(object):
         # units:
         if plasmaType == 'default':
             return 0.0012 * self._sf['Pa*s -> du']
+        elif plasmaType == 'human2':
+            return 0.001339 * self._sf['Pa*s -> du']
         elif plasmaType == 'francesco':
             return 0.00196 * self._sf['Pa*s -> du']
         
@@ -1015,6 +1017,8 @@ cdef class Physiology(object):
             return 49.0 * self._sf['fL -> du']
         elif species == 'francesco':
             return 60.0 * self._sf['fL -> du']
+        elif species == 'human2':
+            return 92.0 * self._sf['fL -> du']
 
 
     # -------------------------------------------------------------------------

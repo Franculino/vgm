@@ -266,6 +266,7 @@ class LinearSystemHtdTotFixedDT(object):
         print('Mass balance verified updated')
         self._update_flow_sign()
         print('Flow sign updated')
+
         if 'posFirstLast' not in G.es.attribute_names():
             G.es['keep_rbcs']=[[] for i in xrange(G.ecount())]
             G.es['posFirstLast']=[None]*G.ecount()
@@ -306,6 +307,8 @@ class LinearSystemHtdTotFixedDT(object):
         print(flowsum)
         print(G['V'])
         print(self._eps)
+        vgm.write_pkl(G,'G_init.pkl')
+        vgm.write_vtp(G,'G_init.vtp',False)
         stdout.write("\rEstimated network turnover time Ttau=%f        \n" % G['Ttau'])
 
     #--------------------------------------------------------------------------
@@ -336,7 +339,7 @@ class LinearSystemHtdTotFixedDT(object):
         #f_var integral dummy
         f_var_LD_dummy = lambda z,mu,sigma: (z-mean_LD)**2*f_LD(z,mu,sigma)
         
-        #calculate mean
+        #calculate variance
         f_var_LD = lambda mu,sigma: quad(f_var_LD_dummy,0,1,args=(mu,sigma))[0]
         f_var_LD_Calc=np.vectorize(f_var_LD)
         
@@ -904,8 +907,10 @@ class LinearSystemHtdTotFixedDT(object):
             edgeList=[int(i) for i in edgeList]
             vertexList=[int(i) for i in vertexList]
         dischargeHt = [min(htt2htd(e, d, invivo), 1.0) for e,d in zip(G.es[edgeList]['htt'],G.es[edgeList]['diameter'])]
-        G.es[edgeList]['effResistance'] =[ res * nurel(max(d,4.0), min(dHt,0.6),invivo) for res,dHt,d in zip(G.es[edgeList]['resistance'], \
+        G.es[edgeList]['effResistance'] =[ res * nurel(max(d,4.0), min(dHt,0.99),invivo) for res,dHt,d in zip(G.es[edgeList]['resistance'], \
             dischargeHt,G.es[edgeList]['diameter'])]
+        #G.es[edgeList]['effResistance'] =[ res * nurel(max(d,4.0), min(dHt,0.6),invivo) for res,dHt,d in zip(G.es[edgeList]['resistance'], \
+        #    dischargeHt,G.es[edgeList]['diameter'])]
 
         edgeList = G.es(edgeList)
         vertexList = G.vs(vertexList)
@@ -4089,19 +4094,12 @@ class LinearSystemHtdTotFixedDT(object):
             iteration += 1
             start_time=ttime.time()
             self._update_eff_resistance_and_LS(self._vertexUpdate)
-            print('Matrix updated')
             self._solve(method, **kwargs)
-            print('Matrix solved')
             self._G.vs['pressure'] = self._x[:]
-            print('Pressure copied')
             self._update_flow_and_velocity()
-            print('Flow updated')
             self._update_flow_sign()
-            print('Flow sign updated')
             self._verify_mass_balance()
-            print('Mass balance verified updated')
             self._update_out_and_inflows_for_vertices()
-            print('In and outflows updated')
             stdout.flush()
             #TODO plotting
             #if doPlotting and tPlot >= pStart and tPlot <= pStop:
@@ -4115,19 +4113,19 @@ class LinearSystemHtdTotFixedDT(object):
                 #filename = 'sample_'+str(int(round(tPlot)))+'.vtp'
                 #self._sample_average()
             if SampleDetailed:
-                print('sample detailed')
                 stdout.flush()
                 self._t=t
                 self._tSample=tSample
                 self._sample()
-                filenameDetailed ='G_iteration_'+str(iteration)+'.pkl'
+                filenameDetailed ='G_iteration_'+str(iteration)
                 #Convert deaultUnits to ['mmHG']
                 #for 'pBC' and 'pressure'
                 for v in G.vs:
                     if v['pBC'] != None:
                         v['pBC']=v['pBC']/self._scaleToDef
                     v['pressure']=v['pressure']/self._scaleToDef
-                vgm.write_pkl(G,filenameDetailed)
+                vgm.write_pkl(G,'Output_pkl/'+filenameDetailed+'.pkl')
+                vgm.write_vtp(G,'Output_vtp/'+filenameDetailed+'.vtp',False)
                 #Convert 'pBC' ['mmHG'] to default Units
                 for v in G.vs:
                     if v['pBC'] != None:
@@ -4135,15 +4133,12 @@ class LinearSystemHtdTotFixedDT(object):
                     v['pressure']=v['pressure']*self._scaleToDef
             else:
                 if doSampling and tSample >= sStart and tSample <= sStop:
-                    print('DO sampling')
                     stdout.flush()
                     self._t=t
                     self._tSample=tSample
-                    print('start sampling')
                     stdout.flush()
                     self._sample()
                     sStart = tSample + sStep
-                    print('sampling DONE')
                     if t > BackUpTStart:
                         print('BackUp should be done')
                         print(BackUpCounter)
@@ -4158,8 +4153,6 @@ class LinearSystemHtdTotFixedDT(object):
                         filename1='sampledict_BackUp_'+str(BackUpCounter)+'.pkl'
                         filename2='G_BackUp'+str(BackUpCounter)+'.pkl'
                         self._sample_average()
-                        print(filename1)
-                        print(filename2)
                         #Convert deaultUnits to 'pBC' ['mmHG']
                         for v in G.vs:
                             if v['pBC'] != None:
@@ -4183,12 +4176,11 @@ class LinearSystemHtdTotFixedDT(object):
                         BackUpCounter += 1
                         BackUpTStart += BackUpT
                         print('BackUp Done')
-            print('START RBC propagate')
             stdout.flush()
+            start_rbc_time = ttime.time()
             self._propagate_rbc()
-            print('RBCs propagated')
+            end_rbc_time = ttime.time()
             self._update_hematocrit(self._edgeUpdate)
-            print('Hematocrit updated')
             tPlot = tPlot + self._dt
             self._tPlot = tPlot
             tSample = tSample + self._dt
@@ -4199,6 +4191,8 @@ class LinearSystemHtdTotFixedDT(object):
             print(t)
             print("Execution Time Loop:")
             print(ttime.time()-start_time, "seconds")
+            print("Execution RBC Tracking:")
+            print(end_rbc_time-start_rbc_time, "seconds")
             print(' ')
             print(' ')
             stdout.write("\r%f" % tPlot)
@@ -4230,7 +4224,7 @@ class LinearSystemHtdTotFixedDT(object):
         G['iterFinalSample']=tSample
         G['BackUpCounter']=BackUpCounter
         filename1='sampledict_BackUp_'+str(BackUpCounter)+'.pkl'
-        filename2='G_BackUp'+str(BackUpCounter)+'.pkl'
+        filename2='G_BackUp'+str(BackUpCounter)
         #if doPlotting:
         #    filename= 'iter_'+str(int(round(tPlot+1)))+'.vtp'
         #    filenamelist.append(filename)
@@ -4247,7 +4241,8 @@ class LinearSystemHtdTotFixedDT(object):
                 v['pressure']=v['pressure']/self._scaleToDef
             self._sample_average()
             g_output.write_pkl(self._sampledict,filename1)
-        vgm.write_pkl(G,filename2)
+        vgm.write_pkl(G,filename2+'.pkl')
+        vgm.write_vtp(G,filename2+'.vtp',False)
 
     #--------------------------------------------------------------------------
 
@@ -4390,7 +4385,6 @@ class LinearSystemHtdTotFixedDT(object):
             #x = abs(AA.solve(self._b, tol=self._eps/10000000000000000000, accel='cg')) # abs required, as (small) negative pressures may arise
             x = abs(AA.solve(self._b, tol=self._eps/10000000, accel='cg')) # abs required, as (small) negative pressures may arise
         elif method == 'iterative2':
-         # Set linear solver
              ml = rootnode_solver(A, smooth=('energy', {'degree':2}), strength='evolution' )
              M = ml.aspreconditioner(cycle='V')
              # Solve pressure system
