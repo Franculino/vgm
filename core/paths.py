@@ -29,18 +29,23 @@ def all_paths_between_two_vertices(G,v1,v2,max_path_length=25,direction='all'):
                       'in', or 'all'. Is ignored in undirected graphs.
     OUTPUT: paths: The possible paths between v1 and v2.
     """
-    
-    oldPaths = [[v1]]; newPaths = []; paths = []
-    while oldPaths != []:
-        log.info("Current number of search paths: %i" % (len(oldPaths)))
-        for path in oldPaths:
-            for neighbor in G.neighbors(path[-1],type=direction):
-                if neighbor == v2:
-                    paths.append(path + [v2])
-                elif neighbor not in path:
-                    if len(path)+1 < max_path_length:
-                        newPaths.append(path + [neighbor])
-        oldPaths = newPaths; newPaths = []
+
+    shortestPath = G.get_shortest_paths(v1,to=v2)[0]
+
+    if len(shortestPath) > 0:
+        oldPaths = [[v1]]; newPaths = []; paths = []
+        while oldPaths != []:
+            log.info("Current number of search paths: %i" % (len(oldPaths)))
+            for path in oldPaths:
+                for neighbor in G.neighbors(path[-1],type=direction):
+                    if neighbor == v2:
+                        paths.append(path + [v2])
+                    elif neighbor not in path:
+                        if len(path)+1 < max_path_length:
+                            newPaths.append(path + [neighbor])
+            oldPaths = newPaths; newPaths = []
+    else:
+        paths = []
     
     return paths
 
