@@ -1,19 +1,24 @@
-#site packages required:
+GENERAL:
+vgm has been developped by Johannes Reichold (JR) and Franca Schmid (FS). Please cite the following papers when using it:
+[1] Schmid, F., Tsai, P. S., Kleinfeld, D., Jenny, P., & Weber, B. (2017). Depth-dependent flow and pressure characteristics in cortical microvascular networks. PLoS computational biology, 13(2), e1005392.
+[2] Reichold, J., Stampanoni, M., Keller, A. L., Buck, A., Jenny, P., & Weber, B. (2009). Vascular graph model to simulate the cerebral blood flow in realistic vascular networks. Journal of Cerebral Blood Flow & Metabolism, 29(8), 1429-1443.
+Further details are available in the dissertation of JR (https://www.research-collection.ethz.ch/handle/20.500.11850/44704) and FS (https://www.research-collection.ethz.ch/handle/20.500.11850/199362)
 
+INSTALLATION:
+1) Install required python packages:
 quantities
 python-igraph
 pyamg
 sympy
 cython
 
-#clone from github
+2) clone from github
 
-#execute
+3) execute
 python setup.py build
-
 cp build/lib.XYZXYZ/vgm/core/*.so core/
 
-#make folder 'logs'
+4) make folder 'logs'
 mkdir logs
 
-#Adjust PYTHONPATH
+5) Adjust PYTHONPATH to include vgm folder
