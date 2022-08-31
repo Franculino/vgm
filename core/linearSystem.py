@@ -175,16 +175,17 @@ class LinearSystem(object):
         b = self._b
         G = self._G
         htt2htd = self._P.tube_to_discharge_hematocrit
-        
+       
         A = self._A.tocsr()
         if method == 'direct':
-            linalg.use_solver(useUmfpack=True)
+            #linalg.use_solver(useUmfpack=True)
             x = linalg.spsolve(A, b)
         elif method == 'iterative2':
              ml = rootnode_solver(A, smooth=('energy', {'degree':2}), strength='evolution' )
              M = ml.aspreconditioner(cycle='V')
              # Solve pressure system
              #x,info = gmres(A, self._b, tol=self._eps, maxiter=1000, M=M)
+             timeStart = ttime.time()
              x,info = gmres(A, self._b, tol=10*self._eps,M=M)
              if info != 0:
                  print('ERROR in Solving the Matrix')
@@ -197,8 +198,8 @@ class LinearSystem(object):
                         conductance[i] for i, edge in enumerate(G.es)]
 
         #Default Units - mmHg for pressure
-        for v in G.vs:
-            v['pressure']=v['pressure']/vgm.units.scaling_factor_du('mmHg',G['defaultUnits'])
+        sf = vgm.units.scaling_factor_du('mmHg',G['defaultUnits'])
+        G.vs['pressure']=np.array(G.vs['pressure'])/sf
 
         if self._withRBC:
 	        G.es['v']=[e['htd']/e['htt']*e['flow']/(0.25*np.pi*e['diameter']**2) for e in G.es]
@@ -210,20 +211,19 @@ class LinearSystem(object):
         G.vs[pBCneNone]['pBC']=np.array(G.vs[pBCneNone]['pBC'])*(1/vgm.units.scaling_factor_du('mmHg',G['defaultUnits']))
 
         vgm.write_pkl(G, 'G_final.pkl')
-        vgm.write_vtp(G, 'G_final.vtp',False)
+        #vgm.write_vtp(G, 'G_final.vtp',False)
 
-        #Write Output
-        sampledict={}
-        for eprop in ['flow', 'v']:
-            if not eprop in sampledict.keys():
-                sampledict[eprop] = []
-            sampledict[eprop].append(G.es[eprop])
-        for vprop in ['pressure']:
-            if not vprop in sampledict.keys():
-                sampledict[vprop] = []
-            sampledict[vprop].append(G.vs[vprop])
-
-	    g_output.write_pkl(sampledict, 'sampledict.pkl')
+        ##Write Output
+        #sampledict={}
+        #for eprop in ['flow', 'v']:
+        #    if not eprop in sampledict.keys():
+        #        sampledict[eprop] = []
+        #    sampledict[eprop].append(G.es[eprop])
+        #for vprop in ['pressure']:
+        #    if not vprop in sampledict.keys():
+        #        sampledict[vprop] = []
+        #    sampledict[vprop].append(G.vs[vprop])
+	#g_output.write_pkl(sampledict, 'sampledict.pkl')
 
     #--------------------------------------------------------------------------
     def _update_nominal_and_specific_resistance(self, esequence=None):

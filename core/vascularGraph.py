@@ -627,7 +627,8 @@ class VascularGraph(Graph):
         diag2=np.sqrt(2)*cubeSize*cubeSizeFactor
         countVolumes=[0]*self.ecount()
         
-        Kdt = kdtree.KDTree(np.concatenate(self.es['points'], 0), leafsize=10)
+        #Kdt = kdtree.KDTree(np.concatenate(self.es['points'], 0), leafsize=10)
+        Kdt = kdtree.KDTree(np.concatenate(self.es['points'], 0))
         cumsum = np.cumsum([len(p) for p in self.es['points']])
 
         #Find zValues where the tissue shall start
@@ -642,6 +643,9 @@ class VascularGraph(Graph):
                 zVals=[]
                 for k in range(zSplits):
                     searchResult = Kdt.query([xCurrent+0.5*cubeSize*cubeSizeFactor,yCurrent+0.5*cubeSize*cubeSizeFactor,zCurrent+0.5*cubeSize])
+                    print('Cube Center')
+                    print([xCurrent+0.5*cubeSize*cubeSizeFactor,yCurrent+0.5*cubeSize*cubeSizeFactor,zCurrent+0.5*cubeSize])
+                    print(searchResult[0])
                     if zCurrent >= zmin1 and zCurrent <= zmin2: #check if a vessel is lying in that cube, otherwise the cube 
                         #should not be considered for analyzing the tissue volume supplied
                         if searchResult[0] < 0.5*diag2:
