@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Schmid"
+  given-names: "Franca"
+  orcid: "https://orcid.org/0000-0002-0689-9366"
+title: "vgm"
+version: 1.0.0
+date-released: 2022-08-31
+url: "https://github.com/Franculino/vgm"
+
+preferred-citation:
+  type: article
+  authors:
+- family-names: "Schmid"
+  given-names: "Franca"
+  orcid: "https://orcid.org/0000-0002-0689-9366"
+- family-names: "Tsai"
+  given-names: "Philbert S"
+- family-names: "Kleinfeld"
+  given-names: "David"
+- family-names: "Jenny"
+  given-names: "Patrick"
+- family-names: "Weber"
+  given-names: "Bruno"
+  doi: "10.1371/journal.pcbi.1005392"
+  journal: "PLoS Computational Biology"
+  pages: "e1005392"
+  title: "Depth-dependent flow and pressure characteristics in cortical microvascular networks"
+  issue: 2
+  volume: 13
+  year: 2017
