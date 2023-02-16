@@ -186,7 +186,7 @@ class LinearSystem(object):
              # Solve pressure system
              #x,info = gmres(A, self._b, tol=self._eps, maxiter=1000, M=M)
              timeStart = ttime.time()
-             x,info = gmres(A, self._b, tol=10*self._eps,M=M)
+             x,info = gmres(A, self._b, tol=100*self._eps,M=M)
              if info != 0:
                  print('ERROR in Solving the Matrix')
                  print(info)
@@ -202,7 +202,8 @@ class LinearSystem(object):
         G.vs['pressure']=np.array(G.vs['pressure'])/sf
 
         if self._withRBC:
-	        G.es['v']=[e['htd']/e['htt']*e['flow']/(0.25*np.pi*e['diameter']**2) for e in G.es]
+                vfList=[1.0 if htt == 0.0 else max(1.0,htd/htt) for htd,htt in zip(G.es['htd'],G.es['htt'])]
+	        G.es['v']=[vf*e['flow']/(0.25*np.pi*e['diameter']**2) for vf,e in zip(vfList,G.es)]
         else:
 	        G.es['v']=[e['flow']/(0.25*np.pi*e['diameter']**2) for e in G.es]
         
