@@ -48,7 +48,7 @@ class LinearSystemHtdTotFixedDT(object):
     the RBCs are distributed based on the phase separation law. 
     """
     #@profile
-    def __init__(self, G, invivo=True,dThreshold=10.0,init=True,**kwargs):
+    def __init__(self, G, invivo=True,dThreshold=10.0,init=True, dMin_empirical = 4.0,**kwargs):
         """Initializes a LinearSystemHtd instance.
         INPUT: G: Vascular graph in iGraph format.
                invivo: Boolean, whether the physiological blood characteristics 
@@ -59,6 +59,8 @@ class LinearSystemHtdTotFixedDT(object):
                            algorithm can be applied.
                init: Assign initial conditions for RBCs (True) or keep old positions to
                         continue a simulation (False)
+                dMin_empiricial: lower limit for the diameter that is used to compute nurel (effective viscosity). The aim of the limit
+                        is to avoid using the empirical equations in a range where no data exists (default = 4.0).
                **kwargs:
                ht0: The initial hematocrit in the capillary bed. ht0 needs to be provided if init=1 
                plasmaViscosity: The dynamic plasma viscosity. If not provided,
@@ -76,6 +78,7 @@ class LinearSystemHtdTotFixedDT(object):
         self._G = G
         self._P = Physiology(G['defaultUnits'])
         self._dThreshold = dThreshold
+        self._dMin_empirical = dMin_empirical
         self._invivo=invivo
         self._b = zeros(G.vcount())
         self._x = zeros(G.vcount())
@@ -86,9 +89,9 @@ class LinearSystemHtdTotFixedDT(object):
         self._tSample = 0.0
         self._filenamelist = []
         self._timelist = []
-	self._timelistAvg = []
+        self._timelistAvg = []
         self._sampledict = {} 
-	self._init=init
+        self._init=init
         self._scaleToDef=vgm.units.scaling_factor_du('mmHg',G['defaultUnits'])
         self._vertexUpdate=None
         self._edgeUpdate=None
@@ -211,7 +214,7 @@ class LinearSystemHtdTotFixedDT(object):
                     G.es[G.adjacent(i)[0]]['httBC_init']=httBCValue
 
         # Assign initial RBC positions:
-	if init:
+        if init:
             if 'ht0' not in kwargs.keys():
                 print('ERROR no inital tube hematocrit given for distribution of RBCs')
             else:
@@ -886,6 +889,7 @@ class LinearSystemHtdTotFixedDT(object):
         b = self._b
         x = self._x
         invivo = self._invivo
+        dMin_empirical = self._dMin_empirical
 
         htt2htd = P.tube_to_discharge_hematocrit
         nurel = P.relative_apparent_blood_viscosity
@@ -907,10 +911,10 @@ class LinearSystemHtdTotFixedDT(object):
             edgeList=[int(i) for i in edgeList]
             vertexList=[int(i) for i in vertexList]
         dischargeHt = [min(htt2htd(e, d, invivo), 1.0) for e,d in zip(G.es[edgeList]['htt'],G.es[edgeList]['diameter'])]
-        G.es[edgeList]['effResistance'] =[ res * nurel(max(d,4.0), min(dHt,0.99),invivo) for res,dHt,d in zip(G.es[edgeList]['resistance'], \
+        G.es[edgeList]['effResistance'] =[ res * nurel(max(d,dMin_empirical), dHt,invivo) for res,dHt,d in zip(G.es[edgeList]['resistance'], \
             dischargeHt,G.es[edgeList]['diameter'])]
         #G.es[edgeList]['effResistance'] =[ res * nurel(max(d,4.0), min(dHt,0.6),invivo) for res,dHt,d in zip(G.es[edgeList]['resistance'], \
-        #    dischargeHt,G.es[edgeList]['diameter'])]
+                #    dischargeHt,G.es[edgeList]['diameter'])] --> NOTE: this formulation is obsolete and should not be used anymore
 
         edgeList = G.es(edgeList)
         vertexList = G.vs(vertexList)

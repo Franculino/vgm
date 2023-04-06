@@ -21,7 +21,7 @@ __all__ = ['LinearSystem']
 #------------------------------------------------------------------------------
 
 class LinearSystem(object):
-    def __init__(self, G, withRBC = 0, invivo = 0, dMin_empirical = 3.5, htdMax_empirical = 0.6, verbose = True,**kwargs):
+    def __init__(self, G, withRBC = 0, invivo = 0, dMin_empirical = 4.0, verbose = True,**kwargs):
         """
         Computes the flow and pressure field of a vascular graph without RBC tracking.
         It can be chosen between pure plasma flow, constant hematocrit or a given htt/htd
@@ -36,9 +36,7 @@ class LinearSystem(object):
                         NOTE: If htd is not in the edge attributes, Htd will be computed from htt and used to compute the resistance.
                         If htd is already in the edge attributes, it won't be recomputed but the current htd values will be used.
                 dMin_empiricial: lower limit for the diameter that is used to compute nurel (effective viscosity). The aim of the limit
-                        is to avoid using the empirical equations in a range where no data exists (default = 3.5).
-                htdMax_empirical: upper limit for htd that is used to compute nurel (effective viscosity). The aim of the limit
-                        is to avoid using the empirical equations in a range where no data exists (default = 0.6). Maximum has to be 1.
+                        is to avoid using the empirical equations in a range where no data exists (default = 4.0).
                 verbose: Bool if WARNINGS and setup information is printed
         OUTPUT: None, the edge properties htt is assgined and the function update is executed (see description for more details)
         """
@@ -48,14 +46,11 @@ class LinearSystem(object):
         self._muPlasma = self._P.dynamic_plasma_viscosity()
         self._withRBC = withRBC
         self._invivo = invivo
-        self._verbose = verbose
-        self._dMin_empirical = dMin_empirical
-        self._htdMax_empirical = htdMax_empirical
+        self._verbose = verbose0        self._dMin_empirical = dMin_empirical
 
         if self._verbose:
             print('INFO: The limits for the compuation of the effective viscosity are set to')
             print('Minimum diameter %.2f' %self._dMin_empirical)
-            print('Maximum discharge %.2f' %self._htdMax_empirical)
 
         if self._withRBC != 0:
             if self._withRBC < 1.:
@@ -115,7 +110,7 @@ class LinearSystem(object):
                 if self._verbose:
                     print('WARNING: htd is already an edge attribute. \n Existing values are not overwritten!'+\
                         '\n If new values should be assigned htd has to be deleted beforehand!')
-            G.es['effResistance'] =[ res * nurel(max(self._dMin_empirical,d),min(dHt,self._htdMax_empirical),self._invivo) \
+            G.es['effResistance'] =[ res * nurel(max(self._dMin_empirical,d),dHt,self._invivo) \
                     for res,dHt,d in zip(G.es['resistance'], dischargeHt,G.es['diameter'])]
             G.es['conductance']=1/np.array(G.es['effResistance'])
         else:
