@@ -46,7 +46,8 @@ class LinearSystem(object):
         self._muPlasma = self._P.dynamic_plasma_viscosity()
         self._withRBC = withRBC
         self._invivo = invivo
-        self._verbose = verbose0        self._dMin_empirical = dMin_empirical
+        self._verbose = verbose        
+        self._dMin_empirical = dMin_empirical
 
         if self._verbose:
             print('INFO: The limits for the compuation of the effective viscosity are set to')
