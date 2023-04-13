@@ -2808,3 +2808,34 @@ class VascularGraph(Graph):
         vgm.write_pkl(verticesDict,'verticesDict.pkl')
         vgm.write_pkl(edgesDict,'edgesDict.pkl')
 
+#--------------------------------------------------------------------
+    def remove_all_degree_1_vertices(self, keep_nkind=[0,1]):
+        """ Generates a trimmed graph where all degree=1 vertices have been removed 
+        INPUT: keep_nkind: degree 1 vertices of the listed kinds are not removed. default = [0,1] 
+        OUTPUT: 
+        """
+
+        self.vs['degree'] = self.degree()
+
+        keep_degree_1 = []
+        for nkind in keep_nkind:
+            keep_degree_1 = keep_degree_1 + self.vs(degree_eq=1,nkind_eq=nkind).indices 
+
+        while len(self.vs(degree_eq=1)) > len(keep_degree_1):
+            deg1 = []
+            for v in self.vs(degree_eq=1).indices:
+                if v not in keep_degree_1:
+                    deg1.append(v)
+            self.delete_vertices(deg1)
+
+            loop_vertices = []
+            self.vs['degree'] = self.degree()
+            for v in self.vs(degree_ge=2).indices:
+                if len(np.unique(self.neighbors(v))) == 1:
+                    loop_vertices.append(v)
+            self.delete_vertices(loop_vertices)
+            self.vs['degree'] = self.degree()
+
+            keep_degree_1 = []
+            for nkind in keep_nkind:
+                keep_degree_1 = keep_degree_1 + self.vs(degree_eq=1,nkind_eq=nkind).indices 
