@@ -1690,13 +1690,12 @@ class VascularGraph(Graph):
             v['substance'][substance] = c[i]
 
     #--------------------------------------------------------------------------
-    
-    def get_edges_in_boundingBox(self,xCoordsBox=[6750,7400],yCoordsBox=[6900,7500],zCoordsBox=[850,1100]):
+    def get_edges_in_boundingBox_point_based(self,xCoordsBox=[6750,7400],yCoordsBox=[6900,7500],zCoordsBox=[850,1100]):
         """ Outputs edges belonging to a given box. 
         INPUT: xCoords = xmin,xmax
                yCoords = ymin,ymax
                zCoords = zmin,zmax
-        OUTPUT: allEdges:
+        OUTPUT: edges_in_box: all edges 
         """
 
         coordsPoints = np.concatenate(self.es['points'], 0)
@@ -1704,18 +1703,55 @@ class VascularGraph(Graph):
         edges=[[e.index]*len(e['points']) for e in self.es]
         associatedEdges = np.concatenate(edges, 0)
         
-        edgesInBox=[]
+        edges_in_box=[]
         for coords,edge in zip(coordsPoints,associatedEdges):
-            if edge not in edgesInBox:
+            if edge not in edges_in_box:
                 if coords[0] >= xCoordsBox[0] and coords[0] <= xCoordsBox[1]:
                     if coords[1] >= yCoordsBox[0] and coords[1] <= yCoordsBox[1]:
                         if coords[2] >= zCoordsBox[0] and coords[2] <= zCoordsBox[1]:
-                            edgesInBox.append(edge)
+                            edges_in_box.append(edge)
          
-        return  edgesInBox
+        return  edges_in_box
 
     #--------------------------------------------------------------------------
+    def get_edges_in_boundingBox_vertex_based(self,xCoordsBox=[6750,7400],yCoordsBox=[6900,7500],zCoordsBox=[850,1100]):
+        """ Outputs edges belonging to a given box. 
+        INPUT: xCoords = xmin,xmax
+               yCoords = ymin,ymax
+               zCoords = zmin,zmax
+        OUTPUT: edges_in_box: all edges completely in edge
+                edges_across_border: edges with one vertex in box and one outside
+                border_vertices: vertices outside box
+        """
 
+        edges_in_box=[]
+        edges_across_border=[]
+        border_vertices=[]
+        for e in self.es:
+            vertices = [e.source,e.target]
+            vertices_in_box = [0,0]
+            for i,v in enumerate(vertices):
+                coords = self.vs[v]['r']
+                if coords[0] >= xCoordsBox[0] and coords[0] <= xCoordsBox[1]:
+                    if coords[1] >= yCoordsBox[0] and coords[1] <= yCoordsBox[1]:
+                        if coords[2] >= zCoordsBox[0] and coords[2] <= zCoordsBox[1]:
+                            vertices_in_box[i] = 1
+            if np.sum(vertices_in_box) == 2:
+                edges_in_box.append(e.index)
+            elif np.sum(vertices_in_box) == 1:
+                edges_across_border.append(e.index)
+                if vertices_in_box[0] == 0:
+                    border_vertices.append(vertices[0])
+                else:
+                    border_vertices.append(vertices[1])
+        
+        edges_in_box = np.unique(edges_in_box)
+        edges_across_border = np.unique(edges_across_border)
+        border_vertices = np.unique(border_vertices)
+
+        return  edges_in_box, edges_across_border, border_vertices
+
+    #--------------------------------------------------------------------------
     def split_into_volumes(self,xSplits=20):
         """Splits the vascular graph into quads.
         INPUT: xSplit: the number of splits in x-direction.
