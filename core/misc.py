@@ -1,5 +1,6 @@
 from __future__ import division                   
 import vgm
+import csv
 import cPickle
 import igraph as ig
 import numpy as np
@@ -768,3 +769,50 @@ def exchange_graph_purePython(G,eAttrs=[],vAttrs=[]):
     with open('verticesDict.pkl','wb') as f:
         cPickle.dump(verticesDict,f,protocol=2)
 
+# -----------------------------------------------------------------------------
+def export_for_microBlooM_csv(G,eAttrs=[],vAttrs=[],path='.'):
+    """ Export csv-files suitable for the readNetwork functions in microBlooM. Length and diameter are scaled from um to m. All other units are kept. 
+    INPUT: G:  Vascular graph in iGraph format.
+            eAttrs: edge attributes which should be stored (default is connectivity, length and diameter. um input expected. converted to m.)
+            vAttrs: vertex attributes which should be stored (default is vertex coordinates)
+            path: path to save csv file can be provided. Default is '.'
+    OUTPUT: node_data.csv, edge_data.csv, node_boundary_data.csv 
+    """
+    scale_to_meters = 1e-6
+    
+    vAttrs_all = ['x','y','z']+vAttrs
+    f = open(path+'/node_data.csv','w')
+    writer = csv.writer(f)
+    writer.writerow(vAttrs_all)
+    for v in G.vs:
+        coords=v['r']
+        row = [scale_to_meters*coords[0],scale_to_meters*coords[1],scale_to_meters*coords[2]]
+        for attr in vAttrs:
+            row.append(v[attr])
+        writer.writerow(row)
+    f.close()
+    
+    eAttrs_all = ['n1','n2','d','L']+eAttrs
+    f = open(path+'/edge_data.csv','w')
+    writer = csv.writer(f)
+    writer.writerow(eAttrs_all)
+    for e in G.es:
+        row = [e.source, e.target, scale_to_meters*e['diameter'], scale_to_meters*e['length']]
+        for attr in eAttrs:
+            row.append(e[attr])
+        writer.writerow(row)
+    f.close()
+    
+    f = open(path+'/node_boundary_data.csv','w')
+    writer = csv.writer(f)
+    writer.writerow(['nodeID','boundaryType','p'])
+    boundary_vertices = G.vs(pBC_ne=None).indices
+    for v in boundary_vertices:
+        row = [v,1,G.vs[v]['pBC']]
+        writer.writerow(row)
+    boundary_vertices = G.vs(rBC_ne=None).indices
+    for v in boundary_vertices:
+        row = [v,2,G.vs[v]['rBC']]
+        writer.writerow(row)
+    f.close()
+    
